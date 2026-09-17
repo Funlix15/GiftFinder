@@ -2,12 +2,12 @@
 
 /* =========================================================
    GIFTFINDER — APP.JS
-   Questionnaire + IA + résultats + favoris
-========================================================= */
+   Questionnaire adaptatif + IA + résultats + favoris
+   ========================================================= */
 
 /* =========================================================
    ÉTAT
-========================================================= */
+   ========================================================= */
 
 const state = {
     category: "",
@@ -25,10 +25,12 @@ const state = {
 };
 
 let currentQuestion = 0;
+let questionHistory = [];
+let currentQuestions = [];
 
 /* =========================================================
    OUTILS
-========================================================= */
+   ========================================================= */
 
 function escapeHTML(value) {
     return String(value ?? "")
@@ -82,7 +84,7 @@ function getCategoryName(category) {
 
 /* =========================================================
    STYLES
-========================================================= */
+   ========================================================= */
 
 function injectGiftFinderStyles() {
     if (document.getElementById("giftfinder-app-styles")) {
@@ -259,6 +261,12 @@ function injectGiftFinderStyles() {
             color: #111;
         }
 
+        .questionnaire-primary:disabled,
+        .questionnaire-secondary:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
         .question-error {
             margin-top: 12px;
             padding: 12px 15px;
@@ -266,6 +274,33 @@ function injectGiftFinderStyles() {
             background: #fff1f1;
             color: #b00020;
             font-size: 14px;
+        }
+
+        .question-ai-analysis {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: #f5f5f5;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .question-ai-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ccc;
+            border-top-color: #111;
+            border-radius: 50%;
+            animation: giftFinderSpin .8s linear infinite;
+        }
+
+        @keyframes giftFinderSpin {
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* RÉSULTATS */
@@ -499,6 +534,7 @@ function injectGiftFinderStyles() {
                 opacity: .25;
                 transform: translateY(0);
             }
+
             40% {
                 opacity: 1;
                 transform: translateY(-5px);
@@ -506,8 +542,13 @@ function injectGiftFinderStyles() {
         }
 
         @keyframes giftPulse {
-            0%,100% { transform: scale(1); }
-            50% { transform: scale(1.08); }
+            0%,100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.08);
+            }
         }
 
         .ai-error {
@@ -593,13 +634,64 @@ function injectGiftFinderStyles() {
 }
 
 /* =========================================================
+   QUESTIONS DE DÉPART
+   ========================================================= */
+
+function getInitialQuestion() {
+    return {
+        id: "recipient",
+        type: "options",
+        title: "Pour qui cherches-tu un cadeau ?",
+        description: "Choisis la personne qui va recevoir le cadeau.",
+        options: [
+            {
+                value: "friend",
+                label: "Un ami",
+                description: "Ami(e), meilleur ami(e)..."
+            },
+            {
+                value: "family",
+                label: "Famille",
+                description: "Parent, frère, sœur..."
+            },
+            {
+                value: "partner",
+                label: "Mon/ma partenaire",
+                description: "Petit(e) ami(e), conjoint(e)..."
+            },
+            {
+                value: "child",
+                label: "Un enfant",
+                description: "Enfant, neveu, nièce..."
+            },
+            {
+                value: "colleague",
+                label: "Un collègue",
+                description: "Cadeau professionnel ou entre collègues."
+            },
+            {
+                value: "self",
+                label: "Pour moi",
+                description: "Une idée pour te faire plaisir."
+            },
+            {
+                value: "other",
+                label: "Autre",
+                description: "Une autre personne."
+            }
+        ]
+    };
+}
+
+/* =========================================================
    OUVRIR / FERMER
-========================================================= */
+   ========================================================= */
 
 function openQuestionnaire(category = "", search = "") {
     injectGiftFinderStyles();
 
-    const modal = document.getElementById("questionnaireModal");
+    const modal =
+        document.getElementById("questionnaireModal");
 
     if (!modal) {
         console.error("❌ Questionnaire introuvable.");
@@ -622,6 +714,12 @@ function openQuestionnaire(category = "", search = "") {
 
     currentQuestion = 0;
 
+    questionHistory = [];
+
+    currentQuestions = [
+        getInitialQuestion()
+    ];
+
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
 
@@ -631,7 +729,8 @@ function openQuestionnaire(category = "", search = "") {
 }
 
 function closeQuestionnaire() {
-    const modal = document.getElementById("questionnaireModal");
+    const modal =
+        document.getElementById("questionnaireModal");
 
     if (!modal) return;
 
@@ -642,239 +741,130 @@ function closeQuestionnaire() {
 }
 
 /* =========================================================
-   QUESTIONS
-========================================================= */
-
-function getQuestions() {
-    const questions = [];
-
-    questions.push({
-        id: "recipient",
-        type: "options",
-        title: "Pour qui cherches-tu un cadeau ?",
-        description: "Choisis la personne qui va recevoir le cadeau.",
-        options: [
-            { value: "friend", label: "Un ami", description: "Ami(e), meilleur ami(e)..." },
-            { value: "family", label: "Famille", description: "Parent, frère, sœur..." },
-            { value: "partner", label: "Mon/ma partenaire", description: "Petit(e) ami(e), conjoint(e)..." },
-            { value: "child", label: "Un enfant", description: "Enfant, neveu, nièce..." },
-            { value: "colleague", label: "Un collègue", description: "Cadeau professionnel ou entre collègues." },
-            { value: "self", label: "Pour moi", description: "Une idée pour te faire plaisir." },
-            { value: "other", label: "Autre", description: "Une autre personne." }
-        ]
-    });
-
-    questions.push({
-        id: "budget",
-        type: "options",
-        title: "Quel est ton budget ?",
-        description: "Choisis la tranche de prix qui te convient.",
-        options: [
-            { value: "under20", label: "Moins de 20 €", description: "Petit budget" },
-            { value: "20to50", label: "20 à 50 €", description: "Budget moyen" },
-            { value: "50to100", label: "50 à 100 €", description: "Budget confortable" },
-            { value: "100to250", label: "100 à 250 €", description: "Cadeau important" },
-            { value: "250plus", label: "250 € et plus", description: "Budget élevé" }
-        ]
-    });
-
-    let categoryOptions = [];
-
-    if (Array.isArray(window.giftCategories)) {
-        categoryOptions = window.giftCategories.map(category => ({
-            value: category.id || category.value,
-            label: category.name || category.label || category.id,
-            description: category.description || ""
-        }));
-    }
-
-    if (categoryOptions.length === 0) {
-        categoryOptions = [
-            ["gaming", "Gaming", "Jeux vidéo et accessoires"],
-            ["stickers", "Stickers", "Stickers et décoration"],
-            ["tech", "Tech", "Électronique et gadgets"],
-            ["fashion", "Mode", "Vêtements et accessoires"],
-            ["sneakers", "Sneakers", "Chaussures et baskets"],
-            ["streetwear", "Streetwear", "Mode streetwear"],
-            ["jewelry", "Bijoux", "Bijoux et accessoires"],
-            ["sport", "Sport", "Sport et activité physique"],
-            ["food", "Food", "Alimentation et gourmandises"],
-            ["drinks", "Boissons", "Boissons et coffrets"],
-            ["creative", "Créatif", "Loisirs créatifs"],
-            ["books", "Livres", "Livres et lecture"],
-            ["home", "Maison", "Objets pour la maison"],
-            ["beauty", "Beauté", "Beauté et soins"],
-            ["music", "Musique", "Musique et accessoires"],
-            ["personalized", "Personnalisé", "Cadeaux personnalisés"],
-            ["travel", "Voyage", "Voyage et accessoires"],
-            ["experience", "Expérience", "Activité ou sortie"]
-        ].map(([value, label, description]) => ({
-            value,
-            label,
-            description
-        }));
-    }
-
-    questions.push({
-        id: "category",
-        type: "options",
-        title: "Quel type de cadeau recherches-tu ?",
-        description: "Choisis la catégorie qui t'intéresse.",
-        options: categoryOptions
-    });
-
-    const selectedCategory =
-        state.answers.category ||
-        state.category ||
-        "";
-
-    if (selectedCategory === "gaming") {
-        questions.push({
-            id: "platform",
-            type: "options",
-            title: "Sur quelle plateforme joue-t-il/elle ?",
-            description: "Cela permettra d'affiner les recommandations.",
-            options: [
-                { value: "pc", label: "PC", description: "Ordinateur" },
-                { value: "playstation", label: "PlayStation", description: "PS4 ou PS5" },
-                { value: "xbox", label: "Xbox", description: "Xbox One ou Series" },
-                { value: "nintendo", label: "Nintendo", description: "Switch et autres consoles Nintendo" },
-                { value: "mobile", label: "Mobile", description: "Smartphone ou tablette" },
-                { value: "any", label: "Peu importe", description: "Toutes les plateformes" }
-            ]
-        });
-
-        questions.push({
-            id: "game",
-            type: "multiOptions",
-            title: "À quels jeux joue-t-il/elle ?",
-            description: "Tu peux sélectionner plusieurs jeux.",
-            options: [
-                { value: "minecraft", label: "Minecraft" },
-                { value: "fortnite", label: "Fortnite" },
-                { value: "roblox", label: "Roblox" },
-                { value: "gta", label: "GTA" },
-                { value: "callofduty", label: "Call of Duty" },
-                { value: "fc", label: "EA Sports FC" },
-                { value: "pokemon", label: "Pokémon" },
-                { value: "other", label: "Autre" }
-            ]
-        });
-    }
-
-    if (
-        selectedCategory === "experience" ||
-        selectedCategory === "travel" ||
-        selectedCategory === "activity" ||
-        selectedCategory === "place"
-    ) {
-        questions.push({
-            id: "city",
-            type: "input",
-            title: "Dans quelle ville ?",
-            description: "Cela permettra d'affiner les expériences disponibles.",
-            placeholder: "Exemple : Paris, Lyon, Mulhouse..."
-        });
-    }
-
-    questions.push({
-        id: "preferences",
-        type: "textarea",
-        title: "As-tu des préférences particulières ?",
-        description: "Plus tu donnes de détails, plus l'IA pourra personnaliser les idées.",
-        placeholder: "Exemple : Il aime le streetwear, les couleurs sombres et les objets originaux..."
-    });
-
-    questions.push({
-        id: "occasion",
-        type: "options",
-        title: "Pour quelle occasion ?",
-        description: "Cela aide à adapter le style du cadeau.",
-        options: [
-            { value: "birthday", label: "Anniversaire" },
-            { value: "christmas", label: "Noël" },
-            { value: "valentine", label: "Saint-Valentin" },
-            { value: "wedding", label: "Mariage" },
-            { value: "thankyou", label: "Remerciement" },
-            { value: "other", label: "Autre" }
-        ]
-    });
-
-    return questions;
-}
-
-/* =========================================================
-   AFFICHER QUESTION
-========================================================= */
+   AFFICHER UNE QUESTION
+   ========================================================= */
 
 function renderQuestion() {
-    const container = document.getElementById("questionContainer");
-    const progressBar = document.getElementById("progressBar");
-    const progressText = document.getElementById("progressText");
-    const previousButton = document.getElementById("previousQuestion");
-    const nextButton = document.getElementById("nextQuestion");
+    const container =
+        document.getElementById("questionContainer");
+
+    const progressBar =
+        document.getElementById("progressBar");
+
+    const progressText =
+        document.getElementById("progressText");
+
+    const previousButton =
+        document.getElementById("previousQuestion");
+
+    const nextButton =
+        document.getElementById("nextQuestion");
 
     if (!container || !nextButton) return;
 
-    const questions = getQuestions();
-    const question = questions[currentQuestion];
+    const question =
+        currentQuestions[currentQuestion];
 
     if (!question) return;
 
-    const total = questions.length;
-    const progress = ((currentQuestion + 1) / total) * 100;
+    /*
+     * On affiche une estimation du nombre de questions.
+     * Le nombre réel peut changer car l'IA décide
+     * dynamiquement de la suite.
+     */
+    const estimatedTotal =
+        Math.max(
+            currentQuestions.length,
+            currentQuestion + 1
+        );
+
+    const progress =
+        Math.min(
+            ((currentQuestion + 1) /
+                estimatedTotal) * 100,
+            95
+        );
 
     if (progressBar) {
-        progressBar.style.width = `${progress}%`;
+        progressBar.style.width =
+            `${progress}%`;
     }
 
     if (progressText) {
         progressText.textContent =
-            `Question ${currentQuestion + 1} sur ${total}`;
+            `Question ${currentQuestion + 1}`;
     }
 
     if (previousButton) {
         previousButton.style.display =
-            currentQuestion === 0 ? "none" : "";
+            currentQuestion === 0
+                ? "none"
+                : "";
     }
 
     let html = `
-        <h2>${escapeHTML(question.title)}</h2>
-        <p class="question-description">
-            ${escapeHTML(question.description || "")}
-        </p>
+        <h2>${escapeHTML(question.title || question.text || "Question")}</h2>
+
+        ${
+            question.description
+                ? `
+                    <p class="question-description">
+                        ${escapeHTML(question.description)}
+                    </p>
+                `
+                : ""
+        }
     `;
 
     if (
-        question.type === "options" ||
-        question.type === "multiOptions"
+        question.type === "choice" ||
+        question.type === "options"
     ) {
-        const currentValue = state.answers[question.id];
+        const currentValue =
+            state.answers[question.id];
+
+        const options =
+            Array.isArray(question.options)
+                ? question.options
+                : [];
 
         html += `
             <div class="question-options">
-                ${question.options.map(option => {
+                ${options.map(option => {
+
+                    const value =
+                        typeof option === "string"
+                            ? option
+                            : option.value;
+
+                    const label =
+                        typeof option === "string"
+                            ? option
+                            : option.label || option.value;
+
+                    const description =
+                        typeof option === "string"
+                            ? ""
+                            : option.description || "";
+
                     const selected =
-                        question.type === "multiOptions"
-                            ? Array.isArray(currentValue) &&
-                              currentValue.includes(option.value)
-                            : currentValue === option.value;
+                        currentValue === value;
 
                     return `
                         <button
                             type="button"
                             class="question-option ${selected ? "selected" : ""}"
-                            data-question-option="${escapeHTML(option.value)}"
+                            data-question-option="${escapeHTML(value)}"
                         >
                             <span class="question-option-title">
-                                ${escapeHTML(option.label)}
+                                ${escapeHTML(label)}
                             </span>
 
                             ${
-                                option.description
+                                description
                                     ? `
                                         <span class="question-option-description">
-                                            ${escapeHTML(option.description)}
+                                            ${escapeHTML(description)}
                                         </span>
                                     `
                                     : ""
@@ -886,25 +876,93 @@ function renderQuestion() {
         `;
     }
 
-    if (question.type === "input") {
+    if (question.type === "multiOptions") {
+        const currentValue =
+            Array.isArray(state.answers[question.id])
+                ? state.answers[question.id]
+                : [];
+
+        const options =
+            Array.isArray(question.options)
+                ? question.options
+                : [];
+
+        html += `
+            <div class="question-options">
+                ${options.map(option => {
+
+                    const value =
+                        typeof option === "string"
+                            ? option
+                            : option.value;
+
+                    const label =
+                        typeof option === "string"
+                            ? option
+                            : option.label || option.value;
+
+                    const description =
+                        typeof option === "string"
+                            ? ""
+                            : option.description || "";
+
+                    const selected =
+                        currentValue.includes(value);
+
+                    return `
+                        <button
+                            type="button"
+                            class="question-option ${selected ? "selected" : ""}"
+                            data-question-option="${escapeHTML(value)}"
+                        >
+                            <span class="question-option-title">
+                                ${escapeHTML(label)}
+                            </span>
+
+                            ${
+                                description
+                                    ? `
+                                        <span class="question-option-description">
+                                            ${escapeHTML(description)}
+                                        </span>
+                                    `
+                                    : ""
+                            }
+                        </button>
+                    `;
+                }).join("")}
+            </div>
+        `;
+    }
+
+    if (
+        question.type === "input" ||
+        question.type === "text"
+    ) {
         html += `
             <input
                 type="text"
                 class="question-input"
                 id="currentQuestionInput"
                 placeholder="${escapeHTML(question.placeholder || "")}"
-                value="${escapeHTML(state.answers[question.id] || "")}"
+                value="${escapeHTML(
+                    state.answers[question.id] || ""
+                )}"
             />
         `;
     }
 
-    if (question.type === "textarea") {
+    if (
+        question.type === "textarea"
+    ) {
         html += `
             <textarea
                 class="question-textarea"
                 id="currentQuestionTextarea"
                 placeholder="${escapeHTML(question.placeholder || "")}"
-            >${escapeHTML(state.answers[question.id] || "")}</textarea>
+            >${escapeHTML(
+                state.answers[question.id] || ""
+            )}</textarea>
         `;
     }
 
@@ -913,77 +971,125 @@ function renderQuestion() {
     container
         .querySelectorAll("[data-question-option]")
         .forEach(button => {
-            button.addEventListener("click", () => {
-                const value = button.dataset.questionOption;
+            button.addEventListener(
+                "click",
+                () => {
+                    const value =
+                        button.dataset.questionOption;
 
-                if (question.type === "multiOptions") {
-                    if (!Array.isArray(state.answers[question.id])) {
-                        state.answers[question.id] = [];
+                    if (
+                        question.type ===
+                        "multiOptions"
+                    ) {
+                        if (
+                            !Array.isArray(
+                                state.answers[
+                                    question.id
+                                ]
+                            )
+                        ) {
+                            state.answers[
+                                question.id
+                            ] = [];
+                        }
+
+                        const values =
+                            state.answers[
+                                question.id
+                            ];
+
+                        if (
+                            values.includes(value)
+                        ) {
+                            state.answers[
+                                question.id
+                            ] = values.filter(
+                                item =>
+                                    item !== value
+                            );
+                        } else {
+                            state.answers[
+                                question.id
+                            ] = [
+                                ...values,
+                                value
+                            ];
+                        }
+
+                        renderQuestion();
+                        return;
                     }
 
-                    const values = state.answers[question.id];
-
-                    if (values.includes(value)) {
-                        state.answers[question.id] =
-                            values.filter(item => item !== value);
-                    } else {
-                        state.answers[question.id] = [
-                            ...values,
-                            value
-                        ];
-                    }
+                    state.answers[
+                        question.id
+                    ] = value;
 
                     renderQuestion();
-                    return;
                 }
-
-                state.answers[question.id] = value;
-
-                renderQuestion();
-            });
+            );
         });
 
-    const input = container.querySelector("#currentQuestionInput");
+    const input =
+        container.querySelector(
+            "#currentQuestionInput"
+        );
 
     if (input) {
-        input.addEventListener("input", event => {
-            state.answers[question.id] = event.target.value;
-        });
+        input.addEventListener(
+            "input",
+            event => {
+                state.answers[
+                    question.id
+                ] = event.target.value;
+            }
+        );
     }
 
-    const textarea = container.querySelector("#currentQuestionTextarea");
+    const textarea =
+        container.querySelector(
+            "#currentQuestionTextarea"
+        );
 
     if (textarea) {
-        textarea.addEventListener("input", event => {
-            state.answers[question.id] = event.target.value;
-        });
+        textarea.addEventListener(
+            "input",
+            event => {
+                state.answers[
+                    question.id
+                ] = event.target.value;
+            }
+        );
     }
 
     nextButton.textContent =
-        currentQuestion === total - 1
-            ? "Voir les cadeaux 🎁"
-            : question.type === "multiOptions"
-                ? "Valider ✓"
-                : "Valider →";
+        "Continuer →";
 }
 
 /* =========================================================
    VALIDATION
-========================================================= */
+   ========================================================= */
 
 function validateQuestion() {
-    const questions = getQuestions();
-    const question = questions[currentQuestion];
+    const question =
+        currentQuestions[currentQuestion];
 
     if (!question) return false;
 
-    const value = state.answers[question.id];
+    const value =
+        state.answers[question.id];
 
-    if (question.type === "multiOptions") {
-        if (!Array.isArray(value) || value.length === 0) {
+    if (
+        question.type ===
+        "multiOptions"
+    ) {
+        if (
+            !Array.isArray(value) ||
+            value.length === 0
+        ) {
             showQuestionError(
                 "Sélectionne au moins une option pour continuer."
             );
+
             return false;
         }
 
@@ -992,12 +1098,16 @@ function validateQuestion() {
 
     if (
         question.type === "input" ||
+        question.type === "text" ||
         question.type === "textarea"
     ) {
-        if (!String(value || "").trim()) {
+        if (
+            !String(value || "").trim()
+        ) {
             showQuestionError(
                 "Remplis ce champ avant de continuer."
             );
+
             return false;
         }
 
@@ -1008,6 +1118,7 @@ function validateQuestion() {
         showQuestionError(
             "Sélectionne une réponse avant de continuer."
         );
+
         return false;
     }
 
@@ -1015,80 +1126,444 @@ function validateQuestion() {
 }
 
 function showQuestionError(message) {
-    const container = document.getElementById("questionContainer");
+    const container =
+        document.getElementById(
+            "questionContainer"
+        );
 
     if (!container) return;
 
     const oldError =
-        container.querySelector(".question-error");
+        container.querySelector(
+            ".question-error"
+        );
 
     if (oldError) {
         oldError.remove();
     }
 
-    const error = document.createElement("div");
+    const error =
+        document.createElement("div");
 
-    error.className = "question-error";
-    error.textContent = message;
+    error.className =
+        "question-error";
+
+    error.textContent =
+        message;
 
     container.appendChild(error);
 }
 
 /* =========================================================
+   ANALYSE IA ENTRE LES QUESTIONS
+   ========================================================= */
+
+async function analyzeCurrentAnswer(question) {
+    const container =
+        document.getElementById(
+            "questionContainer"
+        );
+
+    const nextButton =
+        document.getElementById(
+            "nextQuestion"
+        );
+
+    const previousButton =
+        document.getElementById(
+            "previousQuestion"
+        );
+
+    if (nextButton) {
+        nextButton.disabled = true;
+    }
+
+    if (previousButton) {
+        previousButton.disabled = true;
+    }
+
+    if (container) {
+        const analysisMessage =
+            document.createElement("div");
+
+        analysisMessage.className =
+            "question-ai-analysis";
+
+        analysisMessage.innerHTML = `
+            <span class="question-ai-spinner"></span>
+            <span>
+                GiftFinder analyse ta réponse
+                et adapte la suite...
+            </span>
+        `;
+
+        container.appendChild(
+            analysisMessage
+        );
+    }
+
+    try {
+        const historyForAI =
+            questionHistory.map(item => ({
+                question: {
+                    id: item.question?.id || "",
+                    text:
+                        item.question?.title ||
+                        item.question?.text ||
+                        ""
+                },
+                answer:
+                    item.answer
+            }));
+
+        const response =
+            await fetch(
+                "/api/analyze-answer",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        answers:
+                            state.answers,
+                        lastAnswer:
+                            state.answers[
+                                question.id
+                            ],
+                        questionHistory:
+                            historyForAI
+                    })
+                }
+            );
+
+        let data;
+
+        try {
+            data =
+                await response.json();
+        } catch {
+            throw new Error(
+                "Le serveur a retourné une réponse invalide."
+            );
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                data.error ||
+                "Impossible de contacter l'IA."
+            );
+        }
+
+        if (
+            typeof data.shouldContinue !==
+            "boolean"
+        ) {
+            throw new Error(
+                "La réponse de l'IA est invalide."
+            );
+        }
+
+        /*
+         * L'IA estime qu'elle a suffisamment
+         * d'informations.
+         */
+        if (
+            data.shouldContinue === false
+        ) {
+            closeQuestionnaire();
+            await generateResults();
+            return;
+        }
+
+        const nextQuestion =
+            normalizeAIQuestion(
+                data.nextQuestion
+            );
+
+        if (!nextQuestion) {
+            throw new Error(
+                "L'IA n'a pas fourni de question valide."
+            );
+        }
+
+        /*
+         * On garde l'historique afin que
+         * le bouton Retour fonctionne.
+         */
+        currentQuestions.push(
+            nextQuestion
+        );
+
+        currentQuestion++;
+
+        renderQuestion();
+
+    } catch (error) {
+        console.error(
+            "❌ Erreur analyse IA :",
+            error
+        );
+
+        showQuestionError(
+            error.message ||
+            "Impossible d'analyser cette réponse."
+        );
+
+    } finally {
+        if (nextButton) {
+            nextButton.disabled = false;
+        }
+
+        if (previousButton) {
+            previousButton.disabled = false;
+        }
+    }
+}
+
+/* =========================================================
+   NORMALISER UNE QUESTION IA
+   ========================================================= */
+
+function normalizeAIQuestion(question) {
+    if (!question) {
+        return null;
+    }
+
+    const id =
+        String(
+            question.id ||
+            `question_${Date.now()}`
+        )
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]/g, "_");
+
+    const text =
+        String(
+            question.text ||
+            question.title ||
+            ""
+        ).trim();
+
+    if (!text) {
+        return null;
+    }
+
+    let type =
+        question.type ||
+        "choice";
+
+    const allowedTypes = [
+        "choice",
+        "options",
+        "multiOptions",
+        "input",
+        "text",
+        "textarea"
+    ];
+
+    if (!allowedTypes.includes(type)) {
+        type = "choice";
+    }
+
+    const options =
+        Array.isArray(question.options)
+            ? question.options
+                .map(option => {
+                    if (
+                        typeof option ===
+                        "string"
+                    ) {
+                        return {
+                            value: option,
+                            label: option,
+                            description: ""
+                        };
+                    }
+
+                    return {
+                        value:
+                            String(
+                                option?.value ??
+                                ""
+                            ),
+                        label:
+                            String(
+                                option?.label ??
+                                option?.value ??
+                                ""
+                            ),
+                        description:
+                            String(
+                                option?.description ??
+                                ""
+                            )
+                    };
+                })
+                .filter(
+                    option =>
+                        option.value &&
+                        option.label
+                )
+            : [];
+
+    /*
+     * Une question à choix doit avoir
+     * des options.
+     */
+    if (
+        (type === "choice" ||
+            type === "options" ||
+            type === "multiOptions") &&
+        options.length === 0
+    ) {
+        return null;
+    }
+
+    return {
+        id,
+        type,
+        title: text,
+        description:
+            String(
+                question.description ||
+                ""
+            ),
+        placeholder:
+            String(
+                question.placeholder ||
+                ""
+            ),
+        options
+    };
+}
+
+/* =========================================================
    NAVIGATION
-========================================================= */
+   ========================================================= */
 
 async function goNext() {
-    if (!validateQuestion()) return;
-
-    const questions = getQuestions();
-
-    if (currentQuestion < questions.length - 1) {
-        currentQuestion++;
-        renderQuestion();
+    if (!validateQuestion()) {
         return;
     }
 
-    closeQuestionnaire();
-    await generateResults();
+    const question =
+        currentQuestions[currentQuestion];
+
+    if (!question) {
+        return;
+    }
+
+    /*
+     * On enregistre la réponse actuelle
+     * avant de demander à l'IA de l'analyser.
+     */
+    const existingHistoryIndex =
+        questionHistory.findIndex(
+            item =>
+                item.question?.id ===
+                question.id
+        );
+
+    const historyItem = {
+        question,
+        answer:
+            state.answers[
+                question.id
+            ]
+    };
+
+    if (
+        existingHistoryIndex >= 0
+    ) {
+        questionHistory[
+            existingHistoryIndex
+        ] = historyItem;
+    } else {
+        questionHistory.push(
+            historyItem
+        );
+    }
+
+    /*
+     * Si une question suivante existe déjà
+     * dans l'historique, on peut simplement
+     * l'afficher.
+     */
+    if (
+        currentQuestion <
+        currentQuestions.length - 1
+    ) {
+        currentQuestion++;
+
+        renderQuestion();
+
+        return;
+    }
+
+    /*
+     * Sinon, l'IA analyse la réponse
+     * et décide de la prochaine question.
+     */
+    await analyzeCurrentAnswer(
+        question
+    );
 }
 
 function goPrevious() {
-    if (currentQuestion <= 0) return;
+    if (currentQuestion <= 0) {
+        return;
+    }
 
     currentQuestion--;
+
     renderQuestion();
 }
 
 /* =========================================================
    RÉSULTATS
-========================================================= */
+   ========================================================= */
 
 async function generateResults() {
     injectGiftFinderStyles();
 
     let resultsSection =
-        document.getElementById("giftResults");
+        document.getElementById(
+            "giftResults"
+        );
 
     if (!resultsSection) {
-        resultsSection = document.createElement("section");
-        resultsSection.id = "giftResults";
-        document.body.appendChild(resultsSection);
+        resultsSection =
+            document.createElement(
+                "section"
+            );
+
+        resultsSection.id =
+            "giftResults";
+
+        document.body.appendChild(
+            resultsSection
+        );
     }
 
     resultsSection.innerHTML = `
         <div class="ai-loading-screen">
             <div class="ai-loading-content">
-                <span class="ai-loading-icon">🎁</span>
+
+                <span class="ai-loading-icon">
+                    🎁
+                </span>
 
                 <h2>
-                    GiftFinder cherche pour toi...
+                    GiftFinder prépare tes cadeaux...
                 </h2>
 
                 <p>
-                    Notre IA analyse tes réponses
-                    et prépare des idées de cadeaux
-                    adaptées à ta recherche.
+                    L'IA analyse l'ensemble de
+                    tes réponses et prépare une
+                    sélection personnalisée.
                 </p>
 
                 <div class="ai-loading-dots">
@@ -1096,11 +1571,13 @@ async function generateResults() {
                     <span></span>
                     <span></span>
                 </div>
+
             </div>
         </div>
     `;
 
-    resultsSection.style.display = "block";
+    resultsSection.style.display =
+        "block";
 
     resultsSection.scrollIntoView({
         behavior: "smooth",
@@ -1109,25 +1586,30 @@ async function generateResults() {
 
     try {
         console.log(
-            "🎁 Envoi des réponses à l'IA...",
+            "🎁 Envoi du profil final à l'IA...",
             state.answers
         );
 
-        const response = await fetch(
-            "/api/recommendations",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(state.answers)
-            }
-        );
+        const response =
+            await fetch(
+                "/api/recommendations",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify(
+                        state.answers
+                    )
+                }
+            );
 
         let data;
 
         try {
-            data = await response.json();
+            data =
+                await response.json();
         } catch {
             throw new Error(
                 "Le serveur a retourné une réponse invalide."
@@ -1143,14 +1625,18 @@ async function generateResults() {
 
         if (
             !data.recommendations ||
-            !Array.isArray(data.recommendations)
+            !Array.isArray(
+                data.recommendations
+            )
         ) {
             throw new Error(
                 "L'IA n'a retourné aucune recommandation valide."
             );
         }
 
-        if (data.recommendations.length === 0) {
+        if (
+            data.recommendations.length === 0
+        ) {
             throw new Error(
                 "L'IA n'a trouvé aucune idée de cadeau."
             );
@@ -1172,7 +1658,10 @@ async function generateResults() {
 
         resultsSection.innerHTML = `
             <div class="ai-error">
-                <div class="ai-error-icon">⚠️</div>
+
+                <div class="ai-error-icon">
+                    ⚠️
+                </div>
 
                 <h2>
                     La recherche n'a pas fonctionné
@@ -1192,11 +1681,14 @@ async function generateResults() {
                 >
                     Réessayer
                 </button>
+
             </div>
         `;
 
         const retryButton =
-            document.getElementById("retryAIButton");
+            document.getElementById(
+                "retryAIButton"
+            );
 
         if (retryButton) {
             retryButton.addEventListener(
@@ -1209,7 +1701,7 @@ async function generateResults() {
 
 /* =========================================================
    FAVORIS
-========================================================= */
+   ========================================================= */
 
 function getFavorites() {
     try {
@@ -1221,16 +1713,21 @@ function getFavorites() {
         return favorites
             ? JSON.parse(favorites)
             : [];
+
     } catch {
         return [];
     }
 }
 
-function saveFavorites(favorites) {
+function saveFavorites(
+    favorites
+) {
     try {
         localStorage.setItem(
             "giftfinder_favorites",
-            JSON.stringify(favorites)
+            JSON.stringify(
+                favorites
+            )
         );
     } catch (error) {
         console.error(
@@ -1241,34 +1738,52 @@ function saveFavorites(favorites) {
 }
 
 function isFavorite(gift) {
-    const favorites = getFavorites();
+    const favorites =
+        getFavorites();
 
     return favorites.some(
         item =>
-            String(item?.name || "") ===
-            String(gift?.name || "")
+            String(
+                item?.name || ""
+            ) ===
+            String(
+                gift?.name || ""
+            )
     );
 }
 
 function toggleFavorite(gift) {
-    if (!gift) return false;
+    if (!gift) {
+        return false;
+    }
 
-    let favorites = getFavorites();
+    let favorites =
+        getFavorites();
 
     const existingIndex =
         favorites.findIndex(
             item =>
-                String(item?.name || "") ===
-                String(gift?.name || "")
+                String(
+                    item?.name || ""
+                ) ===
+                String(
+                    gift?.name || ""
+                )
         );
 
     if (existingIndex >= 0) {
-        favorites.splice(existingIndex, 1);
+        favorites.splice(
+            existingIndex,
+            1
+        );
     } else {
         favorites.push(gift);
     }
 
-    saveFavorites(favorites);
+    saveFavorites(
+        favorites
+    );
+
     updateFavoritesCount();
 
     return existingIndex < 0;
@@ -1280,7 +1795,9 @@ function updateFavoritesCount() {
             "favoritesCount"
         );
 
-    if (!countElement) return;
+    if (!countElement) {
+        return;
+    }
 
     countElement.textContent =
         getFavorites().length;
@@ -1288,20 +1805,26 @@ function updateFavoritesCount() {
 
 /* =========================================================
    AFFICHAGE DES PRODUITS
-========================================================= */
+   ========================================================= */
 
-function renderRecommendations(recommendations) {
+function renderRecommendations(
+    recommendations
+) {
     const resultsSection =
         document.getElementById(
             "giftResults"
         );
 
-    if (!resultsSection) return;
+    if (!resultsSection) {
+        return;
+    }
 
-    resultsSection.style.display = "block";
+    resultsSection.style.display =
+        "block";
 
     resultsSection.innerHTML = `
         <div class="results-header">
+
             <span class="results-label">
                 RECOMMANDATIONS IA
             </span>
@@ -1314,159 +1837,182 @@ function renderRecommendations(recommendations) {
                 ${recommendations.length}
                 idées personnalisées selon tes réponses.
             </p>
+
         </div>
 
         <div class="gift-results-grid">
-            ${recommendations.map((gift, index) => {
 
-                const imageUrl =
-                    gift.image ||
-                    gift.imageUrl ||
-                    gift.thumbnail ||
-                    "";
+            ${recommendations
+                .map((gift, index) => {
 
-                const productUrl =
-                    gift.amazonUrl ||
-                    gift.url ||
-                    gift.link ||
-                    "";
+                    const imageUrl =
+                        gift.image ||
+                        gift.imageUrl ||
+                        gift.thumbnail ||
+                        "";
 
-                const safeImage =
-                    safeExternalUrl(imageUrl);
+                    const productUrl =
+                        gift.amazonUrl ||
+                        gift.url ||
+                        gift.link ||
+                        "";
 
-                const safeProductUrl =
-                    safeExternalUrl(productUrl);
+                    const safeImage =
+                        safeExternalUrl(
+                            imageUrl
+                        );
 
-                const favorite =
-                    isFavorite(gift);
+                    const safeProductUrl =
+                        safeExternalUrl(
+                            productUrl
+                        );
 
-                let linkLabel = "Lien bientôt disponible";
+                    const favorite =
+                        isFavorite(
+                            gift
+                        );
 
-                if (safeProductUrl) {
+                    let linkLabel =
+                        "Lien bientôt disponible";
+
                     if (
-                        String(gift.amazonUrl || "").trim()
+                        safeProductUrl
                     ) {
-                        linkLabel = "🔗 Voir sur Amazon";
-                    } else {
-                        linkLabel = "🔗 Voir le produit";
+                        if (
+                            String(
+                                gift.amazonUrl ||
+                                ""
+                            ).trim()
+                        ) {
+                            linkLabel =
+                                "🔗 Voir sur Amazon";
+                        } else {
+                            linkLabel =
+                                "🔗 Voir le produit";
+                        }
                     }
-                }
 
-                return `
-                    <article
-                        class="gift-card"
-                        data-gift-index="${index}"
-                    >
+                    return `
+                        <article
+                            class="gift-card"
+                            data-gift-index="${index}"
+                        >
 
-                        <div class="gift-card-image">
-                            ${
-                                safeImage
-                                    ? `
-                                        <img
-                                            src="${escapeHTML(safeImage)}"
-                                            alt="${escapeHTML(
-                                                gift.name ||
-                                                "Cadeau"
-                                            )}"
-                                            loading="lazy"
-                                        >
-                                    `
-                                    : `
-                                        <div class="gift-image-placeholder">
-                                            🎁
-                                        </div>
-                                    `
-                            }
-                        </div>
-
-                        <div class="gift-card-content">
-
-                            <h3>
-                                ${escapeHTML(
-                                    gift.name ||
-                                    "Idée cadeau"
-                                )}
-                            </h3>
-
-                            ${
-                                gift.description
-                                    ? `
-                                        <p class="gift-description">
-                                            ${escapeHTML(
-                                                gift.description
-                                            )}
-                                        </p>
-                                    `
-                                    : ""
-                            }
-
-                            ${
-                                gift.reason
-                                    ? `
-                                        <div class="gift-reason">
-                                            <strong>
-                                                Pourquoi cette idée ?
-                                            </strong>
-                                            ${escapeHTML(
-                                                gift.reason
-                                            )}
-                                        </div>
-                                    `
-                                    : ""
-                            }
-
-                            <div class="gift-price">
-                                ${escapeHTML(
-                                    gift.price ||
-                                    gift.estimatedPrice ||
-                                    "Prix à vérifier"
-                                )}
-                            </div>
-
-                            <div class="gift-actions">
+                            <div class="gift-card-image">
 
                                 ${
-                                    safeProductUrl
+                                    safeImage
                                         ? `
-                                            <a
-                                                href="${escapeHTML(
-                                                    safeProductUrl
+                                            <img
+                                                src="${escapeHTML(
+                                                    safeImage
                                                 )}"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                class="gift-product-link"
+                                                alt="${escapeHTML(
+                                                    gift.name ||
+                                                    "Cadeau"
+                                                )}"
+                                                loading="lazy"
                                             >
-                                                ${linkLabel}
-                                            </a>
                                         `
                                         : `
-                                            <span
-                                                class="gift-product-link disabled"
-                                            >
-                                                ${linkLabel}
-                                            </span>
+                                            <div class="gift-image-placeholder">
+                                                🎁
+                                            </div>
                                         `
                                 }
 
-                                <button
-                                    type="button"
-                                    class="gift-favorite-button"
-                                    data-favorite-index="${index}"
-                                >
+                            </div>
+
+                            <div class="gift-card-content">
+
+                                <h3>
+                                    ${escapeHTML(
+                                        gift.name ||
+                                        "Idée cadeau"
+                                    )}
+                                </h3>
+
+                                ${
+                                    gift.description
+                                        ? `
+                                            <p class="gift-description">
+                                                ${escapeHTML(
+                                                    gift.description
+                                                )}
+                                            </p>
+                                        `
+                                        : ""
+                                }
+
+                                ${
+                                    gift.reason
+                                        ? `
+                                            <div class="gift-reason">
+                                                <strong>
+                                                    Pourquoi cette idée ?
+                                                </strong>
+                                                ${escapeHTML(
+                                                    gift.reason
+                                                )}
+                                            </div>
+                                        `
+                                        : ""
+                                }
+
+                                <div class="gift-price">
+                                    ${escapeHTML(
+                                        gift.price ||
+                                        gift.estimatedPrice ||
+                                        "Prix à vérifier"
+                                    )}
+                                </div>
+
+                                <div class="gift-actions">
+
                                     ${
-                                        favorite
-                                            ? "❤️ Favori"
-                                            : "♡ Ajouter aux favoris"
+                                        safeProductUrl
+                                            ? `
+                                                <a
+                                                    href="${escapeHTML(
+                                                        safeProductUrl
+                                                    )}"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="gift-product-link"
+                                                >
+                                                    ${linkLabel}
+                                                </a>
+                                            `
+                                            : `
+                                                <span
+                                                    class="gift-product-link disabled"
+                                                >
+                                                    ${linkLabel}
+                                                </span>
+                                            `
                                     }
-                                </button>
+
+                                    <button
+                                        type="button"
+                                        class="gift-favorite-button"
+                                        data-favorite-index="${index}"
+                                    >
+                                        ${
+                                            favorite
+                                                ? "❤️ Favori"
+                                                : "♡ Ajouter aux favoris"
+                                        }
+                                    </button>
+
+                                </div>
 
                             </div>
 
-                        </div>
+                        </article>
+                    `;
+                })
+                .join("")}
 
-                    </article>
-                `;
-            }).join("")}
         </div>
     `;
 
@@ -1475,9 +2021,11 @@ function renderRecommendations(recommendations) {
             "[data-favorite-index]"
         )
         .forEach(button => {
+
             button.addEventListener(
                 "click",
                 () => {
+
                     const index =
                         Number(
                             button.dataset
@@ -1485,10 +2033,14 @@ function renderRecommendations(recommendations) {
                         );
 
                     const gift =
-                        recommendations[index];
+                        recommendations[
+                            index
+                        ];
 
                     const nowFavorite =
-                        toggleFavorite(gift);
+                        toggleFavorite(
+                            gift
+                        );
 
                     button.textContent =
                         nowFavorite
@@ -1503,10 +2055,14 @@ function renderRecommendations(recommendations) {
 
 /* =========================================================
    BOUTONS
-========================================================= */
+   ========================================================= */
 
-function handleQuestionnaireButton(element) {
-    if (!element) return false;
+function handleQuestionnaireButton(
+    element
+) {
+    if (!element) {
+        return false;
+    }
 
     const hasOpenAttribute =
         element.hasAttribute(
@@ -1523,7 +2079,10 @@ function handleQuestionnaireButton(element) {
         element.dataset.search ||
         "";
 
-    if (hasOpenAttribute || category) {
+    if (
+        hasOpenAttribute ||
+        category
+    ) {
         openQuestionnaire(
             category,
             search
@@ -1537,7 +2096,7 @@ function handleQuestionnaireButton(element) {
 
 /* =========================================================
    INITIALISATION
-========================================================= */
+   ========================================================= */
 
 function initializeGiftFinder() {
     injectGiftFinderStyles();
@@ -1547,12 +2106,15 @@ function initializeGiftFinder() {
     document.addEventListener(
         "click",
         event => {
+
             const element =
                 event.target.closest(
                     "button, a, [role='button']"
                 );
 
-            if (!element) return;
+            if (!element) {
+                return;
+            }
 
             if (
                 handleQuestionnaireButton(
@@ -1567,6 +2129,7 @@ function initializeGiftFinder() {
     document.addEventListener(
         "click",
         event => {
+
             const closeButton =
                 event.target.closest(
                     "[data-close-questionnaire]"
@@ -1574,6 +2137,7 @@ function initializeGiftFinder() {
 
             if (closeButton) {
                 event.preventDefault();
+
                 closeQuestionnaire();
             }
         }
@@ -1585,6 +2149,7 @@ function initializeGiftFinder() {
         );
 
     if (questionnaireModal) {
+
         const overlay =
             questionnaireModal.querySelector(
                 ".questionnaire-overlay"
@@ -1625,7 +2190,11 @@ function initializeGiftFinder() {
     document.addEventListener(
         "keydown",
         event => {
-            if (event.key === "Escape") {
+
+            if (
+                event.key ===
+                "Escape"
+            ) {
                 closeQuestionnaire();
             }
         }
@@ -1634,14 +2203,19 @@ function initializeGiftFinder() {
     console.log(
         "🎁 GiftFinder : application chargée."
     );
+
+    console.log(
+        "🧠 Questionnaire IA adaptatif activé."
+    );
 }
 
 /* =========================================================
    DÉMARRAGE
-========================================================= */
+   ========================================================= */
 
 if (
-    document.readyState === "loading"
+    document.readyState ===
+    "loading"
 ) {
     document.addEventListener(
         "DOMContentLoaded",
@@ -1653,7 +2227,7 @@ if (
 
 /* =========================================================
    COMPATIBILITÉ HTML
-========================================================= */
+   ========================================================= */
 
 window.openQuestionnaire =
     openQuestionnaire;
