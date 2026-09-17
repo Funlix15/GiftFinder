@@ -1,13 +1,13 @@
+/* =========================================================
+   GIFTFINDER — APP.JS
+   Questionnaire + IA + résultats + Stripe
+========================================================= */
+
 "use strict";
 
 /* =========================================================
-   GIFTFINDER — APP.JS
-   Questionnaire adaptatif + IA + résultats + favoris
-   ========================================================= */
-
-/* =========================================================
    ÉTAT
-   ========================================================= */
+========================================================= */
 
 const state = {
     category: "",
@@ -25,12 +25,18 @@ const state = {
 };
 
 let currentQuestion = 0;
-let questionHistory = [];
-let currentQuestions = [];
+let isStartingSearch = false;
+let account = {
+    userId: "",
+    credits: 0,
+    premium: false,
+    canSearch: true,
+    freeSearchAvailable: true
+};
 
 /* =========================================================
    OUTILS
-   ========================================================= */
+========================================================= */
 
 function escapeHTML(value) {
     return String(value ?? "")
@@ -41,25 +47,40 @@ function escapeHTML(value) {
         .replace(/'/g, "&#039;");
 }
 
-function safeExternalUrl(value) {
-    const raw = String(value ?? "").trim();
+/*
+   Identifiant stable pour cet utilisateur.
 
-    if (!raw) return "";
+   IMPORTANT :
+   Ce n'est PAS une clé Stripe.
+*/
+function getGiftFinderUserId() {
+    let id = localStorage.getItem("giftfinder_user_id");
 
-    try {
-        const url = new URL(raw, window.location.origin);
-
-        if (
-            url.protocol === "http:" ||
-            url.protocol === "https:"
-        ) {
-            return url.href;
+    if (!id) {
+        if (window.crypto && crypto.randomUUID) {
+            id = crypto.randomUUID();
+        } else {
+            id =
+                Date.now().toString(36) +
+                Math.random().toString(36).slice(2);
         }
-    } catch (error) {
-        return "";
+
+        localStorage.setItem(
+            "giftfinder_user_id",
+            id
+        );
     }
 
-    return "";
+    return id;
+}
+
+function apiHeaders(extra = {}) {
+    return {
+        "Content-Type": "application/json",
+        "x-giftfinder-user-id":
+            getGiftFinderUserId(),
+        ...extra
+    };
 }
 
 function getCategoryName(category) {
@@ -83,19 +104,599 @@ function getCategoryName(category) {
 }
 
 /* =========================================================
-   STYLES
-   ========================================================= */
+   COMPTE / CRÉDITS
+========================================================= */
 
-function injectGiftFinderStyles() {
-    if (document.getElementById("giftfinder-app-styles")) {
+async function refreshAccount() {
+    try {
+        const response = await fetch(
+            "/api/account",
+            {
+                method: "GET",
+                headers: apiHeaders()
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.error ||
+                "Impossible de récupérer le compte."
+            );
+        }
+
+        account = {
+            ...account,
+            ...data
+        };
+
+        updateAccountUI();
+
+        return account;
+    } catch (error) {
+        console.error(
+            "Erreur compte GiftFinder :",
+            error
+        );
+
+        return account;
+    }
+}
+
+function updateAccountUI() {
+    const creditsElements =
+        document.querySelectorAll(
+            "[data-credits], #creditsCount"
+        );
+
+    creditsElements.forEach(element => {
+        element.textContent =
+            String(account.credits ?? 0);
+    });
+
+    const premiumElements =
+        document.querySelectorAll(
+            "[data-premium-status], #premiumStatus"
+        );
+
+    premiumElements.forEach(element => {
+        element.textContent =
+            account.premium
+                ? "Premium actif"
+                : "Compte gratuit";
+    });
+}
+
+/* =========================================================
+   STRIPE — POPUP BOUTIQUE
+========================================================= */
+
+function injectStripeStyles() {
+    if (
+        document.getElementById(
+            "giftfinder-stripe-styles"
+        )
+    ) {
         return;
     }
 
-    const style = document.createElement("style");
+    const style =
+        document.createElement("style");
 
-    style.id = "giftfinder-app-styles";
+    style.id =
+        "giftfinder-stripe-styles";
 
     style.textContent = `
+        .giftfinder-store-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            background: rgba(0,0,0,.6);
+            backdrop-filter: blur(8px);
+        }
+
+        .giftfinder-store-overlay.is-open {
+            display: flex;
+        }
+
+        .giftfinder-store {
+            position: relative;
+            width: min(760px, 100%);
+            max-height: 90vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+            padding: 30px;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 25px 80px rgba(0,0,0,.25);
+        }
+
+        .giftfinder-store-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            border: 0;
+            border-radius: 50%;
+            background: #f1f1f1;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .giftfinder-store-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .giftfinder-store-header h2 {
+            margin: 0 0 8px;
+            font-size: 30px;
+        }
+
+        .giftfinder-store-header p {
+            margin: 0;
+            color: #666;
+        }
+
+        .giftfinder-store-products {
+            display: grid;
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .giftfinder-product {
+            padding: 22px;
+            border: 2px solid #e5e7eb;
+            border-radius: 18px;
+            text-align: center;
+            background: #fff;
+        }
+
+        .giftfinder-product.featured {
+            border-color: #111;
+        }
+
+        .giftfinder-product h3 {
+            margin: 0 0 10px;
+        }
+
+        .giftfinder-product-price {
+            margin: 10px 0;
+            font-size: 25px;
+            font-weight: 900;
+        }
+
+        .giftfinder-product-description {
+            min-height: 45px;
+            margin-bottom: 18px;
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .giftfinder-buy-button {
+            width: 100%;
+            min-height: 46px;
+            border: 0;
+            border-radius: 12px;
+            background: #111;
+            color: #fff;
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .giftfinder-buy-button:hover {
+            opacity: .88;
+        }
+
+        .giftfinder-buy-button:disabled {
+            opacity: .5;
+            cursor: wait;
+        }
+
+        .giftfinder-store-note {
+            margin-top: 20px;
+            text-align: center;
+            color: #777;
+            font-size: 12px;
+        }
+
+        @media (max-width: 700px) {
+            .giftfinder-store {
+                padding: 22px;
+            }
+
+            .giftfinder-store-products {
+                grid-template-columns: 1fr;
+            }
+
+            .giftfinder-product-description {
+                min-height: auto;
+            }
+        }
+    `;
+
+    document.head.appendChild(style);
+}
+
+function createStoreModal() {
+    injectStripeStyles();
+
+    let modal =
+        document.getElementById(
+            "giftfinderStoreModal"
+        );
+
+    if (modal) {
+        return modal;
+    }
+
+    modal =
+        document.createElement("div");
+
+    modal.id =
+        "giftfinderStoreModal";
+
+    modal.className =
+        "giftfinder-store-overlay";
+
+    modal.innerHTML = `
+        <div
+            class="giftfinder-store"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="giftfinderStoreTitle"
+        >
+
+            <button
+                type="button"
+                class="giftfinder-store-close"
+                id="giftfinderStoreClose"
+                aria-label="Fermer"
+            >
+                ×
+            </button>
+
+            <div class="giftfinder-store-header">
+
+                <h2 id="giftfinderStoreTitle">
+                    Continue ta recherche 🎁
+                </h2>
+
+                <p>
+                    Tu as utilisé ta recherche gratuite.
+                    Choisis une offre pour continuer.
+                </p>
+
+            </div>
+
+            <div class="giftfinder-store-products">
+
+                <div class="giftfinder-product featured">
+
+                    <h3>Premium</h3>
+
+                    <div class="giftfinder-product-price">
+                        3,99 € / mois
+                    </div>
+
+                    <div class="giftfinder-product-description">
+                        Recherches illimitées avec GiftFinder.
+                    </div>
+
+                    <button
+                        type="button"
+                        class="giftfinder-buy-button"
+                        data-stripe-product="premium"
+                    >
+                        Passer Premium
+                    </button>
+
+                </div>
+
+                <div class="giftfinder-product">
+
+                    <h3>Pack 10</h3>
+
+                    <div class="giftfinder-product-price">
+                        4,99 €
+                    </div>
+
+                    <div class="giftfinder-product-description">
+                        10 recherches supplémentaires.
+                    </div>
+
+                    <button
+                        type="button"
+                        class="giftfinder-buy-button"
+                        data-stripe-product="pack10"
+                    >
+                        Acheter 10 recherches
+                    </button>
+
+                </div>
+
+                <div class="giftfinder-product">
+
+                    <h3>Pack 30</h3>
+
+                    <div class="giftfinder-product-price">
+                        9,99 €
+                    </div>
+
+                    <div class="giftfinder-product-description">
+                        30 recherches supplémentaires.
+                    </div>
+
+                    <button
+                        type="button"
+                        class="giftfinder-buy-button"
+                        data-stripe-product="pack30"
+                    >
+                        Acheter 30 recherches
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="giftfinder-store-note">
+                Paiement sécurisé via Stripe.
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeButton =
+        modal.querySelector(
+            "#giftfinderStoreClose"
+        );
+
+    if (closeButton) {
+        closeButton.addEventListener(
+            "click",
+            closeStoreModal
+        );
+    }
+
+    modal.addEventListener(
+        "click",
+        event => {
+            if (event.target === modal) {
+                closeStoreModal();
+            }
+        }
+    );
+
+    return modal;
+}
+
+function openStoreModal() {
+    const modal =
+        createStoreModal();
+
+    modal.classList.add("is-open");
+
+    document.body.style.overflow =
+        "hidden";
+}
+
+function closeStoreModal() {
+    const modal =
+        document.getElementById(
+            "giftfinderStoreModal"
+        );
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove(
+        "is-open"
+    );
+
+    document.body.style.overflow =
+        "";
+}
+
+/* =========================================================
+   ACHAT STRIPE
+========================================================= */
+
+async function createCheckoutSession(product) {
+    const allowedProducts = [
+        "premium",
+        "pack10",
+        "pack30"
+    ];
+
+    if (
+        !allowedProducts.includes(
+            product
+        )
+    ) {
+        console.error(
+            "Produit Stripe invalide :",
+            product
+        );
+        return;
+    }
+
+    const buttons =
+        document.querySelectorAll(
+            "[data-stripe-product]"
+        );
+
+    buttons.forEach(button => {
+        button.disabled = true;
+    });
+
+    try {
+        const response =
+            await fetch(
+                "/api/create-checkout-session",
+                {
+                    method: "POST",
+
+                    headers:
+                        apiHeaders(),
+
+                    body:
+                        JSON.stringify({
+                            product
+                        })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.error ||
+                "Impossible de créer le paiement."
+            );
+        }
+
+        if (!data.url) {
+            throw new Error(
+                "Stripe n'a pas retourné de lien de paiement."
+            );
+        }
+
+        /*
+         * Redirection vers Stripe Checkout.
+         */
+        window.location.href =
+            data.url;
+
+    } catch (error) {
+        console.error(
+            "Erreur Stripe :",
+            error
+        );
+
+        alert(
+            error.message ||
+            "Une erreur est survenue avec le paiement."
+        );
+
+        buttons.forEach(button => {
+            button.disabled = false;
+        });
+    }
+}
+
+/* =========================================================
+   DÉMARRER UNE RECHERCHE
+========================================================= */
+
+async function startSearch(
+    category = "",
+    search = ""
+) {
+    if (isStartingSearch) {
+        return;
+    }
+
+    isStartingSearch = true;
+
+    try {
+        const response =
+            await fetch(
+                "/api/start-search",
+                {
+                    method: "POST",
+                    headers: apiHeaders(),
+                    body: JSON.stringify({})
+                }
+            );
+
+        let data = {};
+
+        try {
+            data =
+                await response.json();
+        } catch {
+            data = {};
+        }
+
+        /*
+         * 402 = aucune recherche disponible.
+         */
+        if (response.status === 402) {
+            await refreshAccount();
+
+            openStoreModal();
+
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                data.error ||
+                "Impossible de démarrer la recherche."
+            );
+        }
+
+        /*
+         * Recherche autorisée.
+         * On ouvre ensuite le questionnaire.
+         */
+        await refreshAccount();
+
+        openQuestionnaire(
+            category,
+            search
+        );
+
+    } catch (error) {
+        console.error(
+            "Erreur démarrage recherche :",
+            error
+        );
+
+        alert(
+            error.message ||
+            "Impossible de démarrer la recherche."
+        );
+    } finally {
+        isStartingSearch = false;
+    }
+}
+
+/* =========================================================
+   STYLES QUESTIONNAIRE + RÉSULTATS
+========================================================= */
+
+function injectGiftFinderStyles() {
+    if (
+        document.getElementById(
+            "giftfinder-app-styles"
+        )
+    ) {
+        return;
+    }
+
+    const style =
+        document.createElement("style");
+
+    style.id =
+        "giftfinder-app-styles";
+
+    style.textContent = `
+
         .questionnaire-modal {
             position: fixed;
             inset: 0;
@@ -117,7 +718,7 @@ function injectGiftFinderStyles() {
         .questionnaire-box {
             position: relative;
             z-index: 2;
-            width: min(720px, calc(100% - 30px));
+            width: min(720px,calc(100% - 30px));
             max-height: calc(100vh - 30px);
             overflow-y: auto;
             margin: 15px auto;
@@ -176,7 +777,7 @@ function injectGiftFinderStyles() {
 
         .question-options {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(2,minmax(0,1fr));
             gap: 12px;
         }
 
@@ -261,12 +862,6 @@ function injectGiftFinderStyles() {
             color: #111;
         }
 
-        .questionnaire-primary:disabled,
-        .questionnaire-secondary:disabled {
-            opacity: .55;
-            cursor: not-allowed;
-        }
-
         .question-error {
             margin-top: 12px;
             padding: 12px 15px;
@@ -275,35 +870,6 @@ function injectGiftFinderStyles() {
             color: #b00020;
             font-size: 14px;
         }
-
-        .question-ai-analysis {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 20px;
-            padding: 14px 16px;
-            border-radius: 14px;
-            background: #f5f5f5;
-            color: #555;
-            font-size: 14px;
-        }
-
-        .question-ai-spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid #ccc;
-            border-top-color: #111;
-            border-radius: 50%;
-            animation: giftFinderSpin .8s linear infinite;
-        }
-
-        @keyframes giftFinderSpin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* RÉSULTATS */
 
         #giftResults {
             width: 100%;
@@ -357,13 +923,6 @@ function injectGiftFinderStyles() {
             border: 1px solid #e5e7eb;
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,.04);
-            transition: .2s ease;
-        }
-
-        .gift-card:hover {
-            transform: translateY(-2px);
-            border-color: #d1d5db;
-            box-shadow: 0 8px 24px rgba(0,0,0,.08);
         }
 
         .gift-card-image {
@@ -382,7 +941,6 @@ function injectGiftFinderStyles() {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            display: block;
         }
 
         .gift-image-placeholder {
@@ -392,37 +950,24 @@ function injectGiftFinderStyles() {
             align-items: center;
             justify-content: center;
             background: #f3f4f6;
-            color: #9ca3af;
             font-size: 3rem;
         }
 
         .gift-card-content {
             flex: 1;
             min-width: 0;
-            padding: 5px 0;
         }
 
         .gift-card h3 {
             margin: 0 0 12px;
             color: #111827;
             font-size: 1.15rem;
-            line-height: 1.4;
-            font-weight: 800;
         }
 
         .gift-description,
         .gift-reason {
-            margin: 0 0 12px;
             color: #6b7280;
             line-height: 1.5;
-        }
-
-        .gift-reason {
-            font-size: .9rem;
-        }
-
-        .gift-reason strong {
-            color: #374151;
         }
 
         .gift-price {
@@ -432,17 +977,8 @@ function injectGiftFinderStyles() {
             font-weight: 900;
         }
 
-        .gift-actions {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .gift-product-link {
+        .gift-amazon-link {
             display: inline-flex;
-            align-items: center;
-            justify-content: center;
             padding: 10px 15px;
             border-radius: 8px;
             background: #2563eb;
@@ -452,26 +988,13 @@ function injectGiftFinderStyles() {
             font-weight: 800;
         }
 
-        .gift-product-link:hover {
-            background: #1d4ed8;
-        }
-
-        .gift-product-link.disabled {
-            opacity: .55;
-            cursor: not-allowed;
-        }
-
         .gift-favorite-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            margin-left: 8px;
             padding: 10px 12px;
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             background: #fff;
-            color: #374151;
             cursor: pointer;
-            font-size: .9rem;
             font-weight: 700;
         }
 
@@ -481,7 +1004,6 @@ function injectGiftFinderStyles() {
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 60px 20px;
         }
 
         .ai-loading-content {
@@ -495,15 +1017,13 @@ function injectGiftFinderStyles() {
             animation: giftPulse 1.5s infinite;
         }
 
-        .ai-loading-content h2 {
-            margin: 0 0 12px;
-            font-size: 28px;
-        }
-
-        .ai-loading-content p {
-            margin: 0;
-            color: #666;
-            line-height: 1.6;
+        @keyframes giftPulse {
+            0%,100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.08);
+            }
         }
 
         .ai-loading-dots {
@@ -534,20 +1054,9 @@ function injectGiftFinderStyles() {
                 opacity: .25;
                 transform: translateY(0);
             }
-
             40% {
                 opacity: 1;
                 transform: translateY(-5px);
-            }
-        }
-
-        @keyframes giftPulse {
-            0%,100% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.08);
             }
         }
 
@@ -558,24 +1067,13 @@ function injectGiftFinderStyles() {
             text-align: center;
         }
 
-        .ai-error-icon {
-            font-size: 50px;
-            margin-bottom: 15px;
-        }
+        @media (max-width:700px) {
 
-        .ai-error p {
-            margin-bottom: 25px;
-            color: #666;
-            line-height: 1.5;
-        }
-
-        @media (max-width: 700px) {
             .questionnaire-box {
                 width: calc(100% - 20px);
                 max-height: calc(100vh - 20px);
                 margin: 10px auto;
                 padding: 22px;
-                border-radius: 20px;
             }
 
             .question-options {
@@ -592,7 +1090,6 @@ function injectGiftFinderStyles() {
             }
 
             .gift-card {
-                min-height: 120px;
                 gap: 14px;
                 padding: 12px;
             }
@@ -603,29 +1100,17 @@ function injectGiftFinderStyles() {
                 height: 105px;
             }
 
-            .gift-card h3 {
-                margin-bottom: 7px;
-                font-size: 1rem;
-            }
-
             .gift-description,
             .gift-reason {
                 display: none;
             }
 
+            .gift-card h3 {
+                font-size: 1rem;
+            }
+
             .gift-price {
-                margin-bottom: 9px;
                 font-size: 1.1rem;
-            }
-
-            .gift-product-link,
-            .gift-favorite-button {
-                padding: 8px 10px;
-                font-size: .8rem;
-            }
-
-            .results-header h2 {
-                font-size: 28px;
             }
         }
     `;
@@ -634,156 +1119,466 @@ function injectGiftFinderStyles() {
 }
 
 /* =========================================================
-   QUESTIONS DE DÉPART
-   ========================================================= */
+   QUESTIONNAIRE
+========================================================= */
 
-function getInitialQuestion() {
-    return {
-        id: "recipient",
-        type: "options",
-        title: "Pour qui cherches-tu un cadeau ?",
-        description: "Choisis la personne qui va recevoir le cadeau.",
-        options: [
-            {
-                value: "friend",
-                label: "Un ami",
-                description: "Ami(e), meilleur ami(e)..."
-            },
-            {
-                value: "family",
-                label: "Famille",
-                description: "Parent, frère, sœur..."
-            },
-            {
-                value: "partner",
-                label: "Mon/ma partenaire",
-                description: "Petit(e) ami(e), conjoint(e)..."
-            },
-            {
-                value: "child",
-                label: "Un enfant",
-                description: "Enfant, neveu, nièce..."
-            },
-            {
-                value: "colleague",
-                label: "Un collègue",
-                description: "Cadeau professionnel ou entre collègues."
-            },
-            {
-                value: "self",
-                label: "Pour moi",
-                description: "Une idée pour te faire plaisir."
-            },
-            {
-                value: "other",
-                label: "Autre",
-                description: "Une autre personne."
-            }
-        ]
-    };
-}
-
-/* =========================================================
-   OUVRIR / FERMER
-   ========================================================= */
-
-function openQuestionnaire(category = "", search = "") {
+function openQuestionnaire(
+    category = "",
+    search = ""
+) {
     injectGiftFinderStyles();
 
     const modal =
-        document.getElementById("questionnaireModal");
+        document.getElementById(
+            "questionnaireModal"
+        );
 
     if (!modal) {
-        console.error("❌ Questionnaire introuvable.");
+        console.error(
+            "Questionnaire introuvable dans index.html"
+        );
         return;
     }
 
-    state.category = category || "";
+    state.category =
+        category || "";
 
     state.answers = {
         recipient: "",
         budget: "",
-        category: category || "",
+        category:
+            category || "",
         platform: "",
         game: [],
         city: "",
         occasion: "",
         preferences: "",
-        search: search || ""
+        search:
+            search || ""
     };
 
     currentQuestion = 0;
 
-    questionHistory = [];
+    modal.classList.add(
+        "is-open"
+    );
 
-    currentQuestions = [
-        getInitialQuestion()
-    ];
+    modal.setAttribute(
+        "aria-hidden",
+        "false"
+    );
 
-    modal.classList.add("is-open");
-    modal.setAttribute("aria-hidden", "false");
-
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow =
+        "hidden";
 
     renderQuestion();
 }
 
 function closeQuestionnaire() {
     const modal =
-        document.getElementById("questionnaireModal");
+        document.getElementById(
+            "questionnaireModal"
+        );
 
-    if (!modal) return;
+    if (!modal) {
+        return;
+    }
 
-    modal.classList.remove("is-open");
-    modal.setAttribute("aria-hidden", "true");
+    modal.classList.remove(
+        "is-open"
+    );
 
-    document.body.style.overflow = "";
+    modal.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+    document.body.style.overflow =
+        "";
 }
 
 /* =========================================================
-   AFFICHER UNE QUESTION
-   ========================================================= */
+   QUESTIONS
+========================================================= */
+
+function getQuestions() {
+    const questions = [];
+
+    questions.push({
+        id: "recipient",
+        type: "options",
+        title:
+            "Pour qui cherches-tu un cadeau ?",
+        description:
+            "Choisis la personne qui va recevoir le cadeau.",
+        options: [
+            {
+                value: "friend",
+                label: "Un ami",
+                description:
+                    "Ami(e), meilleur ami(e)..."
+            },
+            {
+                value: "family",
+                label: "Famille",
+                description:
+                    "Parent, frère, sœur..."
+            },
+            {
+                value: "partner",
+                label: "Mon/ma partenaire",
+                description:
+                    "Petit(e) ami(e), conjoint(e)..."
+            },
+            {
+                value: "child",
+                label: "Un enfant",
+                description:
+                    "Enfant, neveu, nièce..."
+            },
+            {
+                value: "colleague",
+                label: "Un collègue",
+                description:
+                    "Cadeau professionnel."
+            },
+            {
+                value: "self",
+                label: "Pour moi",
+                description:
+                    "Une idée pour te faire plaisir."
+            },
+            {
+                value: "other",
+                label: "Autre",
+                description:
+                    "Une autre personne."
+            }
+        ]
+    });
+
+    questions.push({
+        id: "budget",
+        type: "options",
+        title:
+            "Quel est ton budget ?",
+        description:
+            "Choisis la tranche de prix qui te convient.",
+        options: [
+            {
+                value: "under20",
+                label: "Moins de 20 €",
+                description:
+                    "Petit budget"
+            },
+            {
+                value: "20to50",
+                label: "20 à 50 €",
+                description:
+                    "Budget moyen"
+            },
+            {
+                value: "50to100",
+                label: "50 à 100 €",
+                description:
+                    "Budget confortable"
+            },
+            {
+                value: "100to250",
+                label: "100 à 250 €",
+                description:
+                    "Cadeau important"
+            },
+            {
+                value: "250plus",
+                label: "250 € et plus",
+                description:
+                    "Budget élevé"
+            }
+        ]
+    });
+
+    let categoryOptions = [];
+
+    if (
+        Array.isArray(
+            window.giftCategories
+        )
+    ) {
+        categoryOptions =
+            window.giftCategories.map(
+                category => ({
+                    value:
+                        category.id ||
+                        category.value,
+                    label:
+                        category.name ||
+                        category.label ||
+                        category.id,
+                    description:
+                        category.description ||
+                        ""
+                })
+            );
+    }
+
+    if (
+        categoryOptions.length === 0
+    ) {
+        categoryOptions = [
+            ["gaming", "Gaming"],
+            ["stickers", "Stickers"],
+            ["tech", "Tech"],
+            ["fashion", "Mode"],
+            ["sneakers", "Sneakers"],
+            ["streetwear", "Streetwear"],
+            ["jewelry", "Bijoux"],
+            ["sport", "Sport"],
+            ["food", "Food"],
+            ["drinks", "Boissons"],
+            ["creative", "Créatif"],
+            ["books", "Livres"],
+            ["home", "Maison"],
+            ["beauty", "Beauté"],
+            ["music", "Musique"],
+            ["personalized", "Personnalisé"],
+            ["travel", "Voyage"],
+            ["experience", "Expérience"]
+        ].map(item => ({
+            value: item[0],
+            label: item[1],
+            description: ""
+        }));
+    }
+
+    questions.push({
+        id: "category",
+        type: "options",
+        title:
+            "Quel type de cadeau recherches-tu ?",
+        description:
+            "Choisis la catégorie qui t'intéresse.",
+        options: categoryOptions
+    });
+
+    const selectedCategory =
+        state.answers.category ||
+        state.category ||
+        "";
+
+    if (
+        selectedCategory ===
+        "gaming"
+    ) {
+        questions.push({
+            id: "platform",
+            type: "options",
+            title:
+                "Sur quelle plateforme joue-t-il/elle ?",
+            description:
+                "Cela permettra d'affiner les recommandations.",
+            options: [
+                {
+                    value: "pc",
+                    label: "PC",
+                    description:
+                        "Ordinateur"
+                },
+                {
+                    value: "playstation",
+                    label: "PlayStation",
+                    description:
+                        "PS4 ou PS5"
+                },
+                {
+                    value: "xbox",
+                    label: "Xbox",
+                    description:
+                        "Xbox One ou Series"
+                },
+                {
+                    value: "nintendo",
+                    label: "Nintendo",
+                    description:
+                        "Switch et consoles Nintendo"
+                },
+                {
+                    value: "mobile",
+                    label: "Mobile",
+                    description:
+                        "Smartphone ou tablette"
+                },
+                {
+                    value: "any",
+                    label: "Peu importe",
+                    description:
+                        "Toutes les plateformes"
+                }
+            ]
+        });
+
+        questions.push({
+            id: "game",
+            type: "multiOptions",
+            title:
+                "À quels jeux joue-t-il/elle ?",
+            description:
+                "Tu peux sélectionner plusieurs jeux.",
+            options: [
+                {
+                    value: "minecraft",
+                    label: "Minecraft"
+                },
+                {
+                    value: "fortnite",
+                    label: "Fortnite"
+                },
+                {
+                    value: "roblox",
+                    label: "Roblox"
+                },
+                {
+                    value: "gta",
+                    label: "GTA"
+                },
+                {
+                    value: "callofduty",
+                    label: "Call of Duty"
+                },
+                {
+                    value: "fc",
+                    label: "EA Sports FC"
+                },
+                {
+                    value: "pokemon",
+                    label: "Pokémon"
+                },
+                {
+                    value: "other",
+                    label: "Autre"
+                }
+            ]
+        });
+    }
+
+    if (
+        selectedCategory === "experience" ||
+        selectedCategory === "travel" ||
+        selectedCategory === "activity" ||
+        selectedCategory === "place"
+    ) {
+        questions.push({
+            id: "city",
+            type: "input",
+            title:
+                "Dans quelle ville ?",
+            description:
+                "Nous pourrons rechercher des expériences dans cette zone.",
+            placeholder:
+                "Exemple : Paris, Lyon, Mulhouse..."
+        });
+    }
+
+    questions.push({
+        id: "preferences",
+        type: "textarea",
+        title:
+            "As-tu des préférences particulières ?",
+        description:
+            "Plus tu donnes de détails, plus l'IA pourra personnaliser les idées.",
+        placeholder:
+            "Exemple : Il aime le streetwear, les couleurs sombres et les objets originaux..."
+    });
+
+    questions.push({
+        id: "occasion",
+        type: "options",
+        title:
+            "Pour quelle occasion ?",
+        description:
+            "Cela aide à adapter le style du cadeau.",
+        options: [
+            {
+                value: "birthday",
+                label: "Anniversaire"
+            },
+            {
+                value: "christmas",
+                label: "Noël"
+            },
+            {
+                value: "valentine",
+                label: "Saint-Valentin"
+            },
+            {
+                value: "wedding",
+                label: "Mariage"
+            },
+            {
+                value: "thankyou",
+                label: "Remerciement"
+            },
+            {
+                value: "other",
+                label: "Autre"
+            }
+        ]
+    });
+
+    return questions;
+}
+
+/* =========================================================
+   AFFICHER QUESTION
+========================================================= */
 
 function renderQuestion() {
     const container =
-        document.getElementById("questionContainer");
+        document.getElementById(
+            "questionContainer"
+        );
 
     const progressBar =
-        document.getElementById("progressBar");
+        document.getElementById(
+            "progressBar"
+        );
 
     const progressText =
-        document.getElementById("progressText");
+        document.getElementById(
+            "progressText"
+        );
 
     const previousButton =
-        document.getElementById("previousQuestion");
+        document.getElementById(
+            "previousQuestion"
+        );
 
     const nextButton =
-        document.getElementById("nextQuestion");
+        document.getElementById(
+            "nextQuestion"
+        );
 
-    if (!container || !nextButton) return;
+    if (!container || !nextButton) {
+        return;
+    }
+
+    const questions =
+        getQuestions();
 
     const question =
-        currentQuestions[currentQuestion];
+        questions[currentQuestion];
 
-    if (!question) return;
+    if (!question) {
+        return;
+    }
 
-    /*
-     * On affiche une estimation du nombre de questions.
-     * Le nombre réel peut changer car l'IA décide
-     * dynamiquement de la suite.
-     */
-    const estimatedTotal =
-        Math.max(
-            currentQuestions.length,
-            currentQuestion + 1
-        );
+    const total =
+        questions.length;
 
     const progress =
-        Math.min(
-            ((currentQuestion + 1) /
-                estimatedTotal) * 100,
-            95
-        );
+        ((currentQuestion + 1) /
+            total) *
+        100;
 
     if (progressBar) {
         progressBar.style.width =
@@ -792,7 +1587,9 @@ function renderQuestion() {
 
     if (progressText) {
         progressText.textContent =
-            `Question ${currentQuestion + 1}`;
+            `Question ${
+                currentQuestion + 1
+            } sur ${total}`;
     }
 
     if (previousButton) {
@@ -803,150 +1600,98 @@ function renderQuestion() {
     }
 
     let html = `
-        <h2>${escapeHTML(question.title || question.text || "Question")}</h2>
+        <h2>
+            ${escapeHTML(
+                question.title
+            )}
+        </h2>
 
-        ${
-            question.description
-                ? `
-                    <p class="question-description">
-                        ${escapeHTML(question.description)}
-                    </p>
-                `
-                : ""
-        }
+        <p class="question-description">
+            ${escapeHTML(
+                question.description || ""
+            )}
+        </p>
     `;
 
     if (
-        question.type === "choice" ||
-        question.type === "options"
+        question.type === "options" ||
+        question.type === "multiOptions"
     ) {
         const currentValue =
-            state.answers[question.id];
-
-        const options =
-            Array.isArray(question.options)
-                ? question.options
-                : [];
+            state.answers[
+                question.id
+            ];
 
         html += `
             <div class="question-options">
-                ${options.map(option => {
+                ${
+                    question.options
+                        .map(option => {
+                            const selected =
+                                question.type ===
+                                "multiOptions"
+                                    ? Array.isArray(
+                                          currentValue
+                                      ) &&
+                                      currentValue.includes(
+                                          option.value
+                                      )
+                                    : currentValue ===
+                                      option.value;
 
-                    const value =
-                        typeof option === "string"
-                            ? option
-                            : option.value;
+                            return `
+                                <button
+                                    type="button"
+                                    class="question-option ${
+                                        selected
+                                            ? "selected"
+                                            : ""
+                                    }"
+                                    data-question-option="${escapeHTML(
+                                        option.value
+                                    )}"
+                                >
+                                    <span class="question-option-title">
+                                        ${escapeHTML(
+                                            option.label
+                                        )}
+                                    </span>
 
-                    const label =
-                        typeof option === "string"
-                            ? option
-                            : option.label || option.value;
-
-                    const description =
-                        typeof option === "string"
-                            ? ""
-                            : option.description || "";
-
-                    const selected =
-                        currentValue === value;
-
-                    return `
-                        <button
-                            type="button"
-                            class="question-option ${selected ? "selected" : ""}"
-                            data-question-option="${escapeHTML(value)}"
-                        >
-                            <span class="question-option-title">
-                                ${escapeHTML(label)}
-                            </span>
-
-                            ${
-                                description
-                                    ? `
-                                        <span class="question-option-description">
-                                            ${escapeHTML(description)}
-                                        </span>
-                                    `
-                                    : ""
-                            }
-                        </button>
-                    `;
-                }).join("")}
-            </div>
-        `;
-    }
-
-    if (question.type === "multiOptions") {
-        const currentValue =
-            Array.isArray(state.answers[question.id])
-                ? state.answers[question.id]
-                : [];
-
-        const options =
-            Array.isArray(question.options)
-                ? question.options
-                : [];
-
-        html += `
-            <div class="question-options">
-                ${options.map(option => {
-
-                    const value =
-                        typeof option === "string"
-                            ? option
-                            : option.value;
-
-                    const label =
-                        typeof option === "string"
-                            ? option
-                            : option.label || option.value;
-
-                    const description =
-                        typeof option === "string"
-                            ? ""
-                            : option.description || "";
-
-                    const selected =
-                        currentValue.includes(value);
-
-                    return `
-                        <button
-                            type="button"
-                            class="question-option ${selected ? "selected" : ""}"
-                            data-question-option="${escapeHTML(value)}"
-                        >
-                            <span class="question-option-title">
-                                ${escapeHTML(label)}
-                            </span>
-
-                            ${
-                                description
-                                    ? `
-                                        <span class="question-option-description">
-                                            ${escapeHTML(description)}
-                                        </span>
-                                    `
-                                    : ""
-                            }
-                        </button>
-                    `;
-                }).join("")}
+                                    ${
+                                        option.description
+                                            ? `
+                                                <span class="question-option-description">
+                                                    ${escapeHTML(
+                                                        option.description
+                                                    )}
+                                                </span>
+                                            `
+                                            : ""
+                                    }
+                                </button>
+                            `;
+                        })
+                        .join("")
+                }
             </div>
         `;
     }
 
     if (
-        question.type === "input" ||
-        question.type === "text"
+        question.type === "input"
     ) {
         html += `
             <input
                 type="text"
                 class="question-input"
                 id="currentQuestionInput"
-                placeholder="${escapeHTML(question.placeholder || "")}"
+                placeholder="${escapeHTML(
+                    question.placeholder || ""
+                )}"
                 value="${escapeHTML(
-                    state.answers[question.id] || ""
+                    state.answers[
+                        question.id
+                    ] || ""
                 )}"
             />
         `;
@@ -959,23 +1704,33 @@ function renderQuestion() {
             <textarea
                 class="question-textarea"
                 id="currentQuestionTextarea"
-                placeholder="${escapeHTML(question.placeholder || "")}"
+                placeholder="${escapeHTML(
+                    question.placeholder || ""
+                )}"
             >${escapeHTML(
-                state.answers[question.id] || ""
+                state.answers[
+                    question.id
+                ] || ""
             )}</textarea>
         `;
     }
 
-    container.innerHTML = html;
+    container.innerHTML =
+        html;
 
-    container
-        .querySelectorAll("[data-question-option]")
-        .forEach(button => {
+    const optionButtons =
+        container.querySelectorAll(
+            "[data-question-option]"
+        );
+
+    optionButtons.forEach(
+        button => {
             button.addEventListener(
                 "click",
                 () => {
                     const value =
-                        button.dataset.questionOption;
+                        button.dataset
+                            .questionOption;
 
                     if (
                         question.type ===
@@ -999,14 +1754,18 @@ function renderQuestion() {
                             ];
 
                         if (
-                            values.includes(value)
+                            values.includes(
+                                value
+                            )
                         ) {
                             state.answers[
                                 question.id
-                            ] = values.filter(
-                                item =>
-                                    item !== value
-                            );
+                            ] =
+                                values.filter(
+                                    item =>
+                                        item !==
+                                        value
+                                );
                         } else {
                             state.answers[
                                 question.id
@@ -1027,7 +1786,8 @@ function renderQuestion() {
                     renderQuestion();
                 }
             );
-        });
+        }
+    );
 
     const input =
         container.querySelector(
@@ -1040,7 +1800,8 @@ function renderQuestion() {
             event => {
                 state.answers[
                     question.id
-                ] = event.target.value;
+                ] =
+                    event.target.value;
             }
         );
     }
@@ -1056,27 +1817,86 @@ function renderQuestion() {
             event => {
                 state.answers[
                     question.id
-                ] = event.target.value;
+                ] =
+                    event.target.value;
             }
         );
     }
 
-    nextButton.textContent =
-        "Continuer →";
+    if (
+        currentQuestion ===
+        total - 1
+    ) {
+        nextButton.textContent =
+            "Voir les cadeaux 🎁";
+    } else if (
+        question.type ===
+        "multiOptions"
+    ) {
+        nextButton.textContent =
+            "Valider ✓";
+    } else {
+        nextButton.textContent =
+            "Valider →";
+    }
 }
 
 /* =========================================================
    VALIDATION
-   ========================================================= */
+========================================================= */
+
+function showQuestionError(
+    message
+) {
+    const container =
+        document.getElementById(
+            "questionContainer"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    const oldError =
+        container.querySelector(
+            ".question-error"
+        );
+
+    if (oldError) {
+        oldError.remove();
+    }
+
+    const error =
+        document.createElement(
+            "div"
+        );
+
+    error.className =
+        "question-error";
+
+    error.textContent =
+        message;
+
+    container.appendChild(
+        error
+    );
+}
 
 function validateQuestion() {
-    const question =
-        currentQuestions[currentQuestion];
+    const questions =
+        getQuestions();
 
-    if (!question) return false;
+    const question =
+        questions[currentQuestion];
+
+    if (!question) {
+        return false;
+    }
 
     const value =
-        state.answers[question.id];
+        state.answers[
+            question.id
+        ];
 
     if (
         question.type ===
@@ -1098,11 +1918,12 @@ function validateQuestion() {
 
     if (
         question.type === "input" ||
-        question.type === "text" ||
         question.type === "textarea"
     ) {
         if (
-            !String(value || "").trim()
+            !String(
+                value || ""
+            ).trim()
         ) {
             showQuestionError(
                 "Remplis ce champ avant de continuer."
@@ -1125,376 +1946,21 @@ function validateQuestion() {
     return true;
 }
 
-function showQuestionError(message) {
-    const container =
-        document.getElementById(
-            "questionContainer"
-        );
-
-    if (!container) return;
-
-    const oldError =
-        container.querySelector(
-            ".question-error"
-        );
-
-    if (oldError) {
-        oldError.remove();
-    }
-
-    const error =
-        document.createElement("div");
-
-    error.className =
-        "question-error";
-
-    error.textContent =
-        message;
-
-    container.appendChild(error);
-}
-
-/* =========================================================
-   ANALYSE IA ENTRE LES QUESTIONS
-   ========================================================= */
-
-async function analyzeCurrentAnswer(question) {
-    const container =
-        document.getElementById(
-            "questionContainer"
-        );
-
-    const nextButton =
-        document.getElementById(
-            "nextQuestion"
-        );
-
-    const previousButton =
-        document.getElementById(
-            "previousQuestion"
-        );
-
-    if (nextButton) {
-        nextButton.disabled = true;
-    }
-
-    if (previousButton) {
-        previousButton.disabled = true;
-    }
-
-    if (container) {
-        const analysisMessage =
-            document.createElement("div");
-
-        analysisMessage.className =
-            "question-ai-analysis";
-
-        analysisMessage.innerHTML = `
-            <span class="question-ai-spinner"></span>
-            <span>
-                GiftFinder analyse ta réponse
-                et adapte la suite...
-            </span>
-        `;
-
-        container.appendChild(
-            analysisMessage
-        );
-    }
-
-    try {
-        const historyForAI =
-            questionHistory.map(item => ({
-                question: {
-                    id: item.question?.id || "",
-                    text:
-                        item.question?.title ||
-                        item.question?.text ||
-                        ""
-                },
-                answer:
-                    item.answer
-            }));
-
-        const response =
-            await fetch(
-                "/api/analyze-answer",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-                    body: JSON.stringify({
-                        answers:
-                            state.answers,
-                        lastAnswer:
-                            state.answers[
-                                question.id
-                            ],
-                        questionHistory:
-                            historyForAI
-                    })
-                }
-            );
-
-        let data;
-
-        try {
-            data =
-                await response.json();
-        } catch {
-            throw new Error(
-                "Le serveur a retourné une réponse invalide."
-            );
-        }
-
-        if (!response.ok) {
-            throw new Error(
-                data.error ||
-                "Impossible de contacter l'IA."
-            );
-        }
-
-        if (
-            typeof data.shouldContinue !==
-            "boolean"
-        ) {
-            throw new Error(
-                "La réponse de l'IA est invalide."
-            );
-        }
-
-        /*
-         * L'IA estime qu'elle a suffisamment
-         * d'informations.
-         */
-        if (
-            data.shouldContinue === false
-        ) {
-            closeQuestionnaire();
-            await generateResults();
-            return;
-        }
-
-        const nextQuestion =
-            normalizeAIQuestion(
-                data.nextQuestion
-            );
-
-        if (!nextQuestion) {
-            throw new Error(
-                "L'IA n'a pas fourni de question valide."
-            );
-        }
-
-        /*
-         * On garde l'historique afin que
-         * le bouton Retour fonctionne.
-         */
-        currentQuestions.push(
-            nextQuestion
-        );
-
-        currentQuestion++;
-
-        renderQuestion();
-
-    } catch (error) {
-        console.error(
-            "❌ Erreur analyse IA :",
-            error
-        );
-
-        showQuestionError(
-            error.message ||
-            "Impossible d'analyser cette réponse."
-        );
-
-    } finally {
-        if (nextButton) {
-            nextButton.disabled = false;
-        }
-
-        if (previousButton) {
-            previousButton.disabled = false;
-        }
-    }
-}
-
-/* =========================================================
-   NORMALISER UNE QUESTION IA
-   ========================================================= */
-
-function normalizeAIQuestion(question) {
-    if (!question) {
-        return null;
-    }
-
-    const id =
-        String(
-            question.id ||
-            `question_${Date.now()}`
-        )
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9_-]/g, "_");
-
-    const text =
-        String(
-            question.text ||
-            question.title ||
-            ""
-        ).trim();
-
-    if (!text) {
-        return null;
-    }
-
-    let type =
-        question.type ||
-        "choice";
-
-    const allowedTypes = [
-        "choice",
-        "options",
-        "multiOptions",
-        "input",
-        "text",
-        "textarea"
-    ];
-
-    if (!allowedTypes.includes(type)) {
-        type = "choice";
-    }
-
-    const options =
-        Array.isArray(question.options)
-            ? question.options
-                .map(option => {
-                    if (
-                        typeof option ===
-                        "string"
-                    ) {
-                        return {
-                            value: option,
-                            label: option,
-                            description: ""
-                        };
-                    }
-
-                    return {
-                        value:
-                            String(
-                                option?.value ??
-                                ""
-                            ),
-                        label:
-                            String(
-                                option?.label ??
-                                option?.value ??
-                                ""
-                            ),
-                        description:
-                            String(
-                                option?.description ??
-                                ""
-                            )
-                    };
-                })
-                .filter(
-                    option =>
-                        option.value &&
-                        option.label
-                )
-            : [];
-
-    /*
-     * Une question à choix doit avoir
-     * des options.
-     */
-    if (
-        (type === "choice" ||
-            type === "options" ||
-            type === "multiOptions") &&
-        options.length === 0
-    ) {
-        return null;
-    }
-
-    return {
-        id,
-        type,
-        title: text,
-        description:
-            String(
-                question.description ||
-                ""
-            ),
-        placeholder:
-            String(
-                question.placeholder ||
-                ""
-            ),
-        options
-    };
-}
-
 /* =========================================================
    NAVIGATION
-   ========================================================= */
+========================================================= */
 
 async function goNext() {
     if (!validateQuestion()) {
         return;
     }
 
-    const question =
-        currentQuestions[currentQuestion];
+    const questions =
+        getQuestions();
 
-    if (!question) {
-        return;
-    }
-
-    /*
-     * On enregistre la réponse actuelle
-     * avant de demander à l'IA de l'analyser.
-     */
-    const existingHistoryIndex =
-        questionHistory.findIndex(
-            item =>
-                item.question?.id ===
-                question.id
-        );
-
-    const historyItem = {
-        question,
-        answer:
-            state.answers[
-                question.id
-            ]
-    };
-
-    if (
-        existingHistoryIndex >= 0
-    ) {
-        questionHistory[
-            existingHistoryIndex
-        ] = historyItem;
-    } else {
-        questionHistory.push(
-            historyItem
-        );
-    }
-
-    /*
-     * Si une question suivante existe déjà
-     * dans l'historique, on peut simplement
-     * l'afficher.
-     */
     if (
         currentQuestion <
-        currentQuestions.length - 1
+        questions.length - 1
     ) {
         currentQuestion++;
 
@@ -1503,17 +1969,15 @@ async function goNext() {
         return;
     }
 
-    /*
-     * Sinon, l'IA analyse la réponse
-     * et décide de la prochaine question.
-     */
-    await analyzeCurrentAnswer(
-        question
-    );
+    closeQuestionnaire();
+
+    await generateResults();
 }
 
 function goPrevious() {
-    if (currentQuestion <= 0) {
+    if (
+        currentQuestion <= 0
+    ) {
         return;
     }
 
@@ -1523,8 +1987,8 @@ function goPrevious() {
 }
 
 /* =========================================================
-   RÉSULTATS
-   ========================================================= */
+   RÉSULTATS IA
+========================================================= */
 
 async function generateResults() {
     injectGiftFinderStyles();
@@ -1550,6 +2014,7 @@ async function generateResults() {
 
     resultsSection.innerHTML = `
         <div class="ai-loading-screen">
+
             <div class="ai-loading-content">
 
                 <span class="ai-loading-icon">
@@ -1557,13 +2022,12 @@ async function generateResults() {
                 </span>
 
                 <h2>
-                    GiftFinder prépare tes cadeaux...
+                    GiftFinder cherche pour toi...
                 </h2>
 
                 <p>
-                    L'IA analyse l'ensemble de
-                    tes réponses et prépare une
-                    sélection personnalisée.
+                    Notre IA analyse tes réponses
+                    et prépare tes idées de cadeaux.
                 </p>
 
                 <div class="ai-loading-dots">
@@ -1573,6 +2037,7 @@ async function generateResults() {
                 </div>
 
             </div>
+
         </div>
     `;
 
@@ -1585,23 +2050,17 @@ async function generateResults() {
     });
 
     try {
-        console.log(
-            "🎁 Envoi du profil final à l'IA...",
-            state.answers
-        );
-
         const response =
             await fetch(
                 "/api/recommendations",
                 {
                     method: "POST",
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-                    body: JSON.stringify(
-                        state.answers
-                    )
+                    headers:
+                        apiHeaders(),
+                    body:
+                        JSON.stringify(
+                            state.answers
+                        )
                 }
             );
 
@@ -1624,7 +2083,6 @@ async function generateResults() {
         }
 
         if (
-            !data.recommendations ||
             !Array.isArray(
                 data.recommendations
             )
@@ -1635,16 +2093,13 @@ async function generateResults() {
         }
 
         if (
-            data.recommendations.length === 0
+            data.recommendations.length ===
+            0
         ) {
             throw new Error(
                 "L'IA n'a trouvé aucune idée de cadeau."
             );
         }
-
-        console.log(
-            `✅ ${data.recommendations.length} recommandations reçues`
-        );
 
         renderRecommendations(
             data.recommendations
@@ -1652,14 +2107,14 @@ async function generateResults() {
 
     } catch (error) {
         console.error(
-            "❌ Erreur recommandations :",
+            "Erreur recommandations :",
             error
         );
 
         resultsSection.innerHTML = `
             <div class="ai-error">
 
-                <div class="ai-error-icon">
+                <div style="font-size:50px">
                     ⚠️
                 </div>
 
@@ -1685,13 +2140,13 @@ async function generateResults() {
             </div>
         `;
 
-        const retryButton =
+        const retry =
             document.getElementById(
                 "retryAIButton"
             );
 
-        if (retryButton) {
-            retryButton.addEventListener(
+        if (retry) {
+            retry.addEventListener(
                 "click",
                 generateResults
             );
@@ -1701,7 +2156,7 @@ async function generateResults() {
 
 /* =========================================================
    FAVORIS
-   ========================================================= */
+========================================================= */
 
 function getFavorites() {
     try {
@@ -1713,7 +2168,6 @@ function getFavorites() {
         return favorites
             ? JSON.parse(favorites)
             : [];
-
     } catch {
         return [];
     }
@@ -1752,7 +2206,9 @@ function isFavorite(gift) {
     );
 }
 
-function toggleFavorite(gift) {
+function toggleFavorite(
+    gift
+) {
     if (!gift) {
         return false;
     }
@@ -1760,7 +2216,7 @@ function toggleFavorite(gift) {
     let favorites =
         getFavorites();
 
-    const existingIndex =
+    const index =
         favorites.findIndex(
             item =>
                 String(
@@ -1771,13 +2227,15 @@ function toggleFavorite(gift) {
                 )
         );
 
-    if (existingIndex >= 0) {
+    if (index >= 0) {
         favorites.splice(
-            existingIndex,
+            index,
             1
         );
     } else {
-        favorites.push(gift);
+        favorites.push(
+            gift
+        );
     }
 
     saveFavorites(
@@ -1786,26 +2244,26 @@ function toggleFavorite(gift) {
 
     updateFavoritesCount();
 
-    return existingIndex < 0;
+    return index < 0;
 }
 
 function updateFavoritesCount() {
-    const countElement =
+    const element =
         document.getElementById(
             "favoritesCount"
         );
 
-    if (!countElement) {
+    if (!element) {
         return;
     }
 
-    countElement.textContent =
+    element.textContent =
         getFavorites().length;
 }
 
 /* =========================================================
-   AFFICHAGE DES PRODUITS
-   ========================================================= */
+   AFFICHAGE DES CADEAUX
+========================================================= */
 
 function renderRecommendations(
     recommendations
@@ -1834,7 +2292,9 @@ function renderRecommendations(
             </h2>
 
             <p>
-                ${recommendations.length}
+                ${
+                    recommendations.length
+                }
                 idées personnalisées selon tes réponses.
             </p>
 
@@ -1842,225 +2302,209 @@ function renderRecommendations(
 
         <div class="gift-results-grid">
 
-            ${recommendations
-                .map((gift, index) => {
+            ${
+                recommendations
+                    .map(
+                        (gift, index) => {
 
-                    const imageUrl =
-                        gift.image ||
-                        gift.imageUrl ||
-                        gift.thumbnail ||
-                        "";
+                            const image =
+                                gift.image ||
+                                gift.imageUrl ||
+                                gift.thumbnail ||
+                                "";
 
-                    const productUrl =
-                        gift.amazonUrl ||
-                        gift.url ||
-                        gift.link ||
-                        "";
-
-                    const safeImage =
-                        safeExternalUrl(
-                            imageUrl
-                        );
-
-                    const safeProductUrl =
-                        safeExternalUrl(
-                            productUrl
-                        );
-
-                    const favorite =
-                        isFavorite(
-                            gift
-                        );
-
-                    let linkLabel =
-                        "Lien bientôt disponible";
-
-                    if (
-                        safeProductUrl
-                    ) {
-                        if (
-                            String(
+                            const productUrl =
                                 gift.amazonUrl ||
-                                ""
-                            ).trim()
-                        ) {
-                            linkLabel =
-                                "🔗 Voir sur Amazon";
-                        } else {
-                            linkLabel =
-                                "🔗 Voir le produit";
-                        }
-                    }
+                                gift.url ||
+                                gift.link ||
+                                "";
 
-                    return `
-                        <article
-                            class="gift-card"
-                            data-gift-index="${index}"
-                        >
+                            const favorite =
+                                isFavorite(
+                                    gift
+                                );
 
-                            <div class="gift-card-image">
+                            return `
+                                <article
+                                    class="gift-card"
+                                >
 
-                                ${
-                                    safeImage
-                                        ? `
-                                            <img
-                                                src="${escapeHTML(
-                                                    safeImage
-                                                )}"
-                                                alt="${escapeHTML(
-                                                    gift.name ||
-                                                    "Cadeau"
-                                                )}"
-                                                loading="lazy"
-                                            >
-                                        `
-                                        : `
-                                            <div class="gift-image-placeholder">
-                                                🎁
-                                            </div>
-                                        `
-                                }
-
-                            </div>
-
-                            <div class="gift-card-content">
-
-                                <h3>
-                                    ${escapeHTML(
-                                        gift.name ||
-                                        "Idée cadeau"
-                                    )}
-                                </h3>
-
-                                ${
-                                    gift.description
-                                        ? `
-                                            <p class="gift-description">
-                                                ${escapeHTML(
-                                                    gift.description
-                                                )}
-                                            </p>
-                                        `
-                                        : ""
-                                }
-
-                                ${
-                                    gift.reason
-                                        ? `
-                                            <div class="gift-reason">
-                                                <strong>
-                                                    Pourquoi cette idée ?
-                                                </strong>
-                                                ${escapeHTML(
-                                                    gift.reason
-                                                )}
-                                            </div>
-                                        `
-                                        : ""
-                                }
-
-                                <div class="gift-price">
-                                    ${escapeHTML(
-                                        gift.price ||
-                                        gift.estimatedPrice ||
-                                        "Prix à vérifier"
-                                    )}
-                                </div>
-
-                                <div class="gift-actions">
-
-                                    ${
-                                        safeProductUrl
-                                            ? `
-                                                <a
-                                                    href="${escapeHTML(
-                                                        safeProductUrl
-                                                    )}"
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    class="gift-product-link"
-                                                >
-                                                    ${linkLabel}
-                                                </a>
-                                            `
-                                            : `
-                                                <span
-                                                    class="gift-product-link disabled"
-                                                >
-                                                    ${linkLabel}
-                                                </span>
-                                            `
-                                    }
-
-                                    <button
-                                        type="button"
-                                        class="gift-favorite-button"
-                                        data-favorite-index="${index}"
+                                    <div
+                                        class="gift-card-image"
                                     >
+
                                         ${
-                                            favorite
-                                                ? "❤️ Favori"
-                                                : "♡ Ajouter aux favoris"
+                                            image
+                                                ? `
+                                                    <img
+                                                        src="${escapeHTML(
+                                                            image
+                                                        )}"
+                                                        alt="${escapeHTML(
+                                                            gift.name ||
+                                                            "Cadeau"
+                                                        )}"
+                                                        loading="lazy"
+                                                    >
+                                                `
+                                                : `
+                                                    <div class="gift-image-placeholder">
+                                                        🎁
+                                                    </div>
+                                                `
                                         }
-                                    </button>
 
-                                </div>
+                                    </div>
 
-                            </div>
+                                    <div
+                                        class="gift-card-content"
+                                    >
 
-                        </article>
-                    `;
-                })
-                .join("")}
+                                        <h3>
+                                            ${escapeHTML(
+                                                gift.name ||
+                                                "Idée cadeau"
+                                            )}
+                                        </h3>
+
+                                        ${
+                                            gift.description
+                                                ? `
+                                                    <p class="gift-description">
+                                                        ${escapeHTML(
+                                                            gift.description
+                                                        )}
+                                                    </p>
+                                                `
+                                                : ""
+                                        }
+
+                                        ${
+                                            gift.reason
+                                                ? `
+                                                    <div class="gift-reason">
+                                                        <strong>
+                                                            Pourquoi cette idée ?
+                                                        </strong>
+                                                        ${escapeHTML(
+                                                            gift.reason
+                                                        )}
+                                                    </div>
+                                                `
+                                                : ""
+                                        }
+
+                                        <div class="gift-price">
+                                            ${escapeHTML(
+                                                gift.price ||
+                                                gift.estimatedPrice ||
+                                                "Prix à vérifier"
+                                            )}
+                                        </div>
+
+                                        ${
+                                            productUrl
+                                                ? `
+                                                    <a
+                                                        href="${escapeHTML(
+                                                            productUrl
+                                                        )}"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        class="gift-amazon-link"
+                                                    >
+                                                        🔗 Voir le produit
+                                                    </a>
+                                                `
+                                                : `
+                                                    <span
+                                                        class="gift-amazon-link"
+                                                        style="opacity:.55"
+                                                    >
+                                                        🔗 Lien bientôt disponible
+                                                    </span>
+                                                `
+                                        }
+
+                                        <button
+                                            type="button"
+                                            class="gift-favorite-button"
+                                            data-favorite-index="${index}"
+                                        >
+                                            ${
+                                                favorite
+                                                    ? "❤️ Favori"
+                                                    : "♡ Ajouter aux favoris"
+                                            }
+                                        </button>
+
+                                    </div>
+
+                                </article>
+                            `;
+                        }
+                    )
+                    .join("")
+            }
 
         </div>
     `;
 
-    resultsSection
-        .querySelectorAll(
+    const buttons =
+        resultsSection.querySelectorAll(
             "[data-favorite-index]"
-        )
-        .forEach(button => {
+        );
 
-            button.addEventListener(
-                "click",
-                () => {
+    buttons.forEach(button => {
+        button.addEventListener(
+            "click",
+            () => {
+                const index =
+                    Number(
+                        button.dataset
+                            .favoriteIndex
+                    );
 
-                    const index =
-                        Number(
-                            button.dataset
-                                .favoriteIndex
-                        );
+                const gift =
+                    recommendations[
+                        index
+                    ];
 
-                    const gift =
-                        recommendations[
-                            index
-                        ];
+                const nowFavorite =
+                    toggleFavorite(
+                        gift
+                    );
 
-                    const nowFavorite =
-                        toggleFavorite(
-                            gift
-                        );
-
-                    button.textContent =
-                        nowFavorite
-                            ? "❤️ Favori"
-                            : "♡ Ajouter aux favoris";
-                }
-            );
-        });
+                button.textContent =
+                    nowFavorite
+                        ? "❤️ Favori"
+                        : "♡ Ajouter aux favoris";
+            }
+        );
+    });
 
     updateFavoritesCount();
 }
 
 /* =========================================================
-   BOUTONS
-   ========================================================= */
+   BOUTONS DE RECHERCHE
+========================================================= */
 
 function handleQuestionnaireButton(
     element
 ) {
     if (!element) {
+        return false;
+    }
+
+    /*
+     * On ne traite PAS les boutons Stripe ici.
+     */
+    if (
+        element.hasAttribute(
+            "data-stripe-product"
+        )
+    ) {
         return false;
     }
 
@@ -2083,7 +2527,7 @@ function handleQuestionnaireButton(
         hasOpenAttribute ||
         category
     ) {
-        openQuestionnaire(
+        startSearch(
             category,
             search
         );
@@ -2096,17 +2540,25 @@ function handleQuestionnaireButton(
 
 /* =========================================================
    INITIALISATION
-   ========================================================= */
+========================================================= */
 
 function initializeGiftFinder() {
     injectGiftFinderStyles();
+    injectStripeStyles();
 
     updateFavoritesCount();
 
+    /*
+     * Récupère le compte au chargement.
+     */
+    refreshAccount();
+
+    /*
+     * Gestion globale des clics.
+     */
     document.addEventListener(
         "click",
         event => {
-
             const element =
                 event.target.closest(
                     "button, a, [role='button']"
@@ -2116,20 +2568,45 @@ function initializeGiftFinder() {
                 return;
             }
 
+            /*
+             * STRIPE
+             */
+            const stripeProduct =
+                element.dataset
+                    .stripeProduct;
+
+            if (
+                stripeProduct
+            ) {
+                event.preventDefault();
+
+                createCheckoutSession(
+                    stripeProduct
+                );
+
+                return;
+            }
+
+            /*
+             * QUESTIONNAIRE
+             */
             if (
                 handleQuestionnaireButton(
                     element
                 )
             ) {
                 event.preventDefault();
+                return;
             }
         }
     );
 
+    /*
+     * Fermeture questionnaire.
+     */
     document.addEventListener(
         "click",
         event => {
-
             const closeButton =
                 event.target.closest(
                     "[data-close-questionnaire]"
@@ -2143,13 +2620,15 @@ function initializeGiftFinder() {
         }
     );
 
+    /*
+     * Overlay questionnaire.
+     */
     const questionnaireModal =
         document.getElementById(
             "questionnaireModal"
         );
 
     if (questionnaireModal) {
-
         const overlay =
             questionnaireModal.querySelector(
                 ".questionnaire-overlay"
@@ -2163,6 +2642,9 @@ function initializeGiftFinder() {
         }
     }
 
+    /*
+     * Bouton précédent.
+     */
     const previousButton =
         document.getElementById(
             "previousQuestion"
@@ -2175,6 +2657,9 @@ function initializeGiftFinder() {
         );
     }
 
+    /*
+     * Bouton suivant.
+     */
     const nextButton =
         document.getElementById(
             "nextQuestion"
@@ -2187,31 +2672,52 @@ function initializeGiftFinder() {
         );
     }
 
+    /*
+     * Échap.
+     */
     document.addEventListener(
         "keydown",
         event => {
-
             if (
                 event.key ===
                 "Escape"
             ) {
                 closeQuestionnaire();
+                closeStoreModal();
             }
         }
     );
 
-    console.log(
-        "🎁 GiftFinder : application chargée."
-    );
+    /*
+     * Retour depuis Stripe.
+     */
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    if (
+        params.get("payment") ===
+        "success"
+    ) {
+        setTimeout(
+            refreshAccount,
+            1500
+        );
+
+        console.log(
+            "Paiement Stripe terminé."
+        );
+    }
 
     console.log(
-        "🧠 Questionnaire IA adaptatif activé."
+        "🎁 GiftFinder : application chargée."
     );
 }
 
 /* =========================================================
-   DÉMARRAGE
-   ========================================================= */
+   LANCEMENT
+========================================================= */
 
 if (
     document.readyState ===
@@ -2226,8 +2732,8 @@ if (
 }
 
 /* =========================================================
-   COMPATIBILITÉ HTML
-   ========================================================= */
+   FONCTIONS ACCESSIBLES DEPUIS LE HTML
+========================================================= */
 
 window.openQuestionnaire =
     openQuestionnaire;
@@ -2241,11 +2747,27 @@ window.generateResults =
 window.renderRecommendations =
     renderRecommendations;
 
+/*
+ * IMPORTANT :
+ * Ces deux anciennes fonctions
+ * passent maintenant par le système
+ * de vérification des recherches.
+ */
 window.openGiftFinder =
-    openQuestionnaire;
+    startSearch;
 
 window.startGiftSearch =
-    openQuestionnaire;
+    startSearch;
 
 window.openGiftFinderQuestionnaire =
-    openQuestionnaire;
+    startSearch;
+
+/*
+ * Boutique accessible si besoin
+ * depuis le HTML.
+ */
+window.openGiftFinderStore =
+    openStoreModal;
+
+window.closeGiftFinderStore =
+    closeStoreModal;
