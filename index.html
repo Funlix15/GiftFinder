@@ -1,1044 +1,2487 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>GiftFinder — Trouve le cadeau parfait</title>
-    <meta
-        name="description"
-        content="GiftFinder t'aide à trouver des idées de cadeaux personnalisées selon la personne, ton budget, l'occasion et ses goûts."
-    >
-
-    <link rel="stylesheet" href="style.css">
-</head>
-
-<body>
-
-    <!-- =========================
-         HEADER
-    ========================== -->
-    <header class="site-header">
-        <div class="container header-inner">
-
-            <a href="#" class="logo">
-                🎁 GiftFinder
-            </a>
-
-            <nav class="main-nav" id="mainNav">
-                <a href="#home">Accueil</a>
-                <a href="#how-it-works">Comment ça marche</a>
-                <a href="#pricing">Tarifs</a>
-                <a href="#faq">FAQ</a>
-            </nav>
-
-            <button
-                type="button"
-                class="menu-toggle"
-                id="menuToggle"
-                aria-label="Ouvrir le menu"
-            >
-                ☰
-            </button>
-
-        </div>
-    </header>
-
-
-    <main>
-
-        <!-- =========================
-             HERO
-        ========================== -->
-        <section class="hero" id="home">
-            <div class="container hero-content">
-
-                <div class="hero-text">
-
-                    <span class="hero-badge">
-                        ✨ Ton assistant cadeaux
-                    </span>
-
-                    <h1>
-                        Trouve le cadeau parfait
-                        <span>en quelques secondes.</span>
-                    </h1>
-
-                    <p>
-                        Réponds à quelques questions et GiftFinder analyse
-                        tes réponses pour te proposer des cadeaux adaptés
-                        à la personne, à ton budget et à l'occasion.
-                    </p>
-
-                    <button
-                        type="button"
-                        class="primary-button"
-                        id="startGiftFinderButton"
-                        onclick="startGiftSearch()"
-                    >
-                        Trouver un cadeau →
-                    </button>
-
-                    <p class="hero-note">
-                        🎁 1 recherche gratuite par jour
-                    </p>
-
-                </div>
-
-                <div class="hero-visual">
-
-                    <div class="gift-card-main">
-                        <div class="gift-card-icon">🎁</div>
-
-                        <div>
-                            <strong>Idée cadeau trouvée</strong>
-                            <span>Adaptée à tes réponses</span>
-                        </div>
-                    </div>
-
-                    <div class="floating-card floating-card-one">
-                        💻 Technologie
-                    </div>
-
-                    <div class="floating-card floating-card-two">
-                        👟 Mode
-                    </div>
-
-                    <div class="floating-card floating-card-three">
-                        🎮 Gaming
-                    </div>
-
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- =========================
-             COMMENT ÇA MARCHE
-        ========================== -->
-        <section class="section" id="how-it-works">
-
-            <div class="container">
-
-                <div class="section-heading">
-                    <span>COMMENT ÇA MARCHE ?</span>
-                    <h2>Trois étapes pour trouver ton cadeau</h2>
-                    <p>
-                        Pas besoin de passer des heures à chercher.
-                    </p>
-                </div>
-
-                <div class="steps-grid">
-
-                    <article class="step-card">
-                        <div class="step-number">1</div>
-                        <div class="step-icon">📝</div>
-
-                        <h3>Réponds aux questions</h3>
-
-                        <p>
-                            Indique pour qui est le cadeau,
-                            ton budget, l'occasion et ses goûts.
-                        </p>
-                    </article>
-
-
-                    <article class="step-card">
-                        <div class="step-number">2</div>
-                        <div class="step-icon">🤖</div>
-
-                        <h3>GiftFinder analyse</h3>
-
-                        <p>
-                            Notre système analyse tes réponses
-                            pour comprendre ce qui pourrait lui plaire.
-                        </p>
-                    </article>
-
-
-                    <article class="step-card">
-                        <div class="step-number">3</div>
-                        <div class="step-icon">🎁</div>
-
-                        <h3>Découvre les idées</h3>
-
-                        <p>
-                            Découvre une sélection de cadeaux
-                            correspondant à ta recherche.
-                        </p>
-                    </article>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =========================
-             CATEGORIES
-        ========================== -->
-        <section class="section section-alt">
-
-            <div class="container">
-
-                <div class="section-heading">
-                    <span>POUR TOUS LES GOÛTS</span>
-                    <h2>Une recherche adaptée à chaque personne</h2>
-                    <p>
-                        Gaming, mode, technologie, sport, livres et bien plus.
-                    </p>
-                </div>
-
-                <div class="categories-grid">
-
-                    <div class="category-card">
-                        <span>🎮</span>
-                        <strong>Gaming</strong>
-                    </div>
-
-                    <div class="category-card">
-                        <span>💻</span>
-                        <strong>Tech</strong>
-                    </div>
-
-                    <div class="category-card">
-                        <span>👟</span>
-                        <strong>Mode</strong>
-                    </div>
-
-                    <div class="category-card">
-                        <span>💎</span>
-                        <strong>Bijoux</strong>
-                    </div>
-
-                    <div class="category-card">
-                        <span>⚽</span>
-                        <strong>Sport</strong>
-                    </div>
-
-                    <div class="category-card">
-                        <span>📚</span>
-                        <strong>Livres</strong>
-                    </div>
-
-                    <div class="category-card">
-                        <span>🎨</span>
-                        <strong>Créatif</strong>
-                    </div>
-
-                    <div class="category-card">
-                        <span>✈️</span>
-                        <strong>Voyage</strong>
-                    </div>
-
-                    <div class="category-card">
-                        <span>🍫</span>
-                        <strong>Food</strong>
-                    </div>
-
-                    <div class="category-card">
-                        <span>🏠</span>
-                        <strong>Maison</strong>
-                    </div>
-
-                    <div class="category-card">
-                        <span>🎵</span>
-                        <strong>Musique</strong>
-                    </div>
-
-                    <div class="category-card">
-                        <span>✨</span>
-                        <strong>Personnalisé</strong>
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =========================
-             PRICING
-        ========================== -->
-        <section class="section" id="pricing">
-
-            <div class="container">
-
-                <div class="section-heading">
-                    <span>GIFTFINDER</span>
-                    <h2>Choisis ton offre</h2>
-                    <p>
-                        Commence gratuitement ou débloque davantage de recherches.
-                    </p>
-                </div>
-
-
-                <div class="pricing-grid">
-
-                    <!-- GRATUIT -->
-                    <article class="pricing-card">
-
-                        <div class="pricing-card-header">
-                            <h3>Gratuit</h3>
-
-                            <div class="price">
-                                <strong>0 €</strong>
-                            </div>
-
-                            <p>Pour découvrir GiftFinder</p>
-                        </div>
-
-                        <ul class="pricing-list">
-                            <li>✓ 1 recherche par jour</li>
-                            <li>✓ Questionnaire personnalisé</li>
-                            <li>✓ Idées de cadeaux</li>
-                            <li>✓ Accès aux favoris</li>
-                        </ul>
-
-                        <button
-                            type="button"
-                            class="secondary-button"
-                            onclick="startGiftSearch()"
-                        >
-                            Commencer gratuitement
-                        </button>
-
-                    </article>
-
-
-                    <!-- PREMIUM -->
-                    <article class="pricing-card pricing-card-featured">
-
-                        <div class="popular-badge">
-                            PREMIUM
-                        </div>
-
-                        <div class="pricing-card-header">
-                            <h3>Premium</h3>
-
-                            <div class="price">
-                                <strong>3,99 €</strong>
-                                <span>/ mois</span>
-                            </div>
-
-                            <p>Pour rechercher sans limite</p>
-                        </div>
-
-                        <ul class="pricing-list">
-                            <li>✓ Recherches illimitées</li>
-                            <li>✓ Questionnaire personnalisé</li>
-                            <li>✓ Recommandations personnalisées</li>
-                            <li>✓ Accès aux favoris</li>
-                            <li>✓ Annulable à tout moment</li>
-                        </ul>
-
-                        <button
-                            type="button"
-                            class="premium-button"
-                            id="premiumButton"
-                            data-payment-product="premium"
-                        >
-                            Passer Premium — 3,99 € / mois
-                        </button>
-
-                    </article>
-
-
-                    <!-- PACKS -->
-                    <article class="pricing-card">
-
-                        <div class="pricing-card-header">
-                            <h3>Packs de recherches</h3>
-
-                            <p>
-                                Achète uniquement les recherches dont tu as besoin.
-                            </p>
-                        </div>
-
-                        <div class="pack-option">
-
-                            <div>
-                                <strong>10 recherches</strong>
-                                <span>4,99 €</span>
-                            </div>
-
-                            <button
-                                type="button"
-                                class="premium-button pack-button"
-                                id="pack10Button"
-                                data-payment-product="pack10"
-                            >
-                                Acheter
-                            </button>
-
-                        </div>
-
-
-                        <div class="pack-option">
-
-                            <div>
-                                <strong>30 recherches</strong>
-                                <span>9,99 €</span>
-                            </div>
-
-                            <button
-                                type="button"
-                                class="premium-button pack-button"
-                                id="pack30Button"
-                                data-payment-product="pack30"
-                            >
-                                Acheter
-                            </button>
-
-                        </div>
-
-                    </article>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =========================
-             FAQ
-        ========================== -->
-        <section class="section section-alt" id="faq">
-
-            <div class="container">
-
-                <div class="section-heading">
-                    <span>FAQ</span>
-                    <h2>Questions fréquentes</h2>
-                </div>
-
-
-                <div class="faq-container">
-
-                    <details class="faq-item">
-                        <summary>
-                            Comment fonctionne GiftFinder ?
-                        </summary>
-
-                        <p>
-                            Tu réponds à quelques questions sur la personne
-                            à qui tu souhaites offrir un cadeau. GiftFinder
-                            analyse ensuite tes réponses et génère des idées
-                            correspondant à ta recherche.
-                        </p>
-                    </details>
-
-
-                    <details class="faq-item">
-                        <summary>
-                            Est-ce que je peux choisir mon budget ?
-                        </summary>
-
-                        <p>
-                            Oui. Ton budget fait partie des informations
-                            utilisées pendant la recherche.
-                        </p>
-                    </details>
-
-
-                    <details class="faq-item">
-                        <summary>
-                            Quels types de cadeaux puis-je rechercher ?
-                        </summary>
-
-                        <p>
-                            Tu peux rechercher des cadeaux dans de nombreuses
-                            catégories : gaming, technologie, mode, sneakers,
-                            sport, livres, bijoux, food, maison, musique,
-                            expériences et bien plus.
-                        </p>
-                    </details>
-
-
-                    <details class="faq-item">
-                        <summary>
-                            Comment fonctionne le Premium ?
-                        </summary>
-
-                        <p>
-                            Le Premium permet d'effectuer des recherches
-                            sans la limite quotidienne de l'offre gratuite.
-                        </p>
-                    </details>
-
-
-                    <details class="faq-item">
-                        <summary>
-                            Puis-je acheter seulement quelques recherches ?
-                        </summary>
-
-                        <p>
-                            Oui. Tu peux acheter un pack de 10 ou de 30
-                            recherches sans prendre l'abonnement Premium.
-                        </p>
-                    </details>
-
-
-                    <details class="faq-item">
-                        <summary>
-                            Comment sont effectués les paiements ?
-                        </summary>
-
-                        <p>
-                            Les paiements sont traités par Stripe lorsque
-                            les paiements sont activés sur le compte.
-                        </p>
-                    </details>
-
-                </div>
-
-            </div>
-
-        </section>
-
-    </main>
-
-
-    <!-- =========================
-         QUESTIONNAIRE
-    ========================== -->
-    <div
-        class="modal-overlay"
-        id="questionnaireModal"
-        aria-hidden="true"
-    >
-
-        <div
-            class="modal questionnaire-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="questionnaireTitle"
-        >
-
-            <button
-                type="button"
-                class="modal-close"
-                id="closeQuestionnaireButton"
-                onclick="closeQuestionnaire()"
-                aria-label="Fermer"
-            >
-                ×
-            </button>
-
-
-            <div class="questionnaire-header">
-
-                <span class="modal-badge">
-                    🎁 GIFT FINDER
-                </span>
-
-                <h2 id="questionnaireTitle">
-                    Trouvons ton cadeau
-                </h2>
-
-                <p id="questionnaireSubtitle">
-                    Réponds aux questions pour obtenir des recommandations personnalisées.
-                </p>
-
-            </div>
-
-
-            <div class="questionnaire-progress">
-
-                <div class="progress-bar">
-                    <div
-                        class="progress-fill"
-                        id="questionnaireProgress"
-                    ></div>
-                </div>
-
-                <span id="questionnaireProgressText">
-                    Question 1
-                </span>
-
-            </div>
-
-
-            <div
-                id="questionnaireContent"
-                class="questionnaire-content"
-            >
-                <!-- Le questionnaire est généré par app.js -->
-            </div>
-
-
-            <div class="questionnaire-actions">
-
-                <button
-                    type="button"
-                    class="secondary-button"
-                    id="questionnaireBackButton"
-                >
-                    ← Retour
-                </button>
-
-                <button
-                    type="button"
-                    class="primary-button"
-                    id="questionnaireNextButton"
-                >
-                    Continuer →
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- =========================
-         RÉSULTATS
-    ========================== -->
-    <div
-        class="modal-overlay"
-        id="resultsModal"
-        aria-hidden="true"
-    >
-
-        <div
-            class="modal results-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="resultsTitle"
-        >
-
-            <button
-                type="button"
-                class="modal-close"
-                id="closeResultsButton"
-                aria-label="Fermer"
-            >
-                ×
-            </button>
-
-
-            <div class="results-header">
-
-                <span class="modal-badge">
-                    ✨ TES RECOMMANDATIONS
-                </span>
-
-                <h2 id="resultsTitle">
-                    Voici des idées pour toi
-                </h2>
-
-                <p id="resultsSubtitle">
-                    Nous avons trouvé des cadeaux qui correspondent à ta recherche.
-                </p>
-
-            </div>
-
-
-            <div
-                id="recommendationsContainer"
-                class="recommendations-container"
-            >
-                <!-- Les résultats sont générés par app.js -->
-            </div>
-
-
-            <div class="results-actions">
-
-                <button
-                    type="button"
-                    class="secondary-button"
-                    id="newSearchButton"
-                    onclick="startGiftSearch()"
-                >
-                    🔄 Nouvelle recherche
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- =========================
-         MODALE PAIEMENT
-    ========================== -->
-    <div
-        class="modal-overlay"
-        id="paymentModal"
-        aria-hidden="true"
-    >
-
-        <div
-            class="modal payment-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="paymentTitle"
-        >
-
-            <button
-                type="button"
-                class="modal-close"
-                onclick="closePaymentModal()"
-                aria-label="Fermer"
-            >
-                ×
-            </button>
-
-
-            <div class="payment-header">
-
-                <div class="payment-icon">
-                    🔒
-                </div>
-
-                <h2 id="paymentTitle">
-                    Continue ta recherche
-                </h2>
-
-                <p>
-                    Tu as utilisé ta recherche gratuite aujourd'hui.
-                    Choisis une option pour continuer.
-                </p>
-
-            </div>
-
-
-            <div class="payment-options">
-
-                <!-- PREMIUM -->
-                <button
-                    type="button"
-                    class="payment-option payment-option-featured"
-                    id="paymentPremiumButton"
-                    data-payment-product="premium"
-                >
-
-                    <div class="payment-option-icon">
-                        ♾️
-                    </div>
-
-                    <div class="payment-option-content">
-                        <strong>Premium</strong>
-                        <span>3,99 € / mois</span>
-                        <small>Recherches illimitées</small>
-                    </div>
-
-                    <span class="payment-arrow">
-                        →
-                    </span>
-
-                </button>
-
-
-                <!-- PACK 10 -->
-                <button
-                    type="button"
-                    class="payment-option"
-                    id="paymentPack10Button"
-                    data-payment-product="pack10"
-                >
-
-                    <div class="payment-option-icon">
-                        🎁
-                    </div>
-
-                    <div class="payment-option-content">
-                        <strong>10 recherches</strong>
-                        <span>4,99 €</span>
-                        <small>Sans abonnement</small>
-                    </div>
-
-                    <span class="payment-arrow">
-                        →
-                    </span>
-
-                </button>
-
-
-                <!-- PACK 30 -->
-                <button
-                    type="button"
-                    class="payment-option"
-                    id="paymentPack30Button"
-                    data-payment-product="pack30"
-                >
-
-                    <div class="payment-option-icon">
-                        🚀
-                    </div>
-
-                    <div class="payment-option-content">
-                        <strong>30 recherches</strong>
-                        <span>9,99 €</span>
-                        <small>Sans abonnement</small>
-                    </div>
-
-                    <span class="payment-arrow">
-                        →
-                    </span>
-
-                </button>
-
-            </div>
-
-
-            <p class="payment-security">
-                🔒 Paiement sécurisé avec Stripe
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <!-- =========================
-         FOOTER
-    ========================== -->
-    <footer class="site-footer">
-
-        <div class="container">
-
-            <div class="footer-main">
-
-                <div class="footer-brand">
-
-                    <a href="#home" class="logo">
-                        🎁 GiftFinder
-                    </a>
-
-                    <p>
-                        Trouve des idées de cadeaux adaptées
-                        à chaque personne et chaque occasion.
-                    </p>
-
-                </div>
-
-
-                <div class="footer-column">
-
-                    <h3>GiftFinder</h3>
-
-                    <a href="#home">Accueil</a>
-                    <a href="#how-it-works">Comment ça marche</a>
-                    <a href="#pricing">Tarifs</a>
-                    <a href="#faq">FAQ</a>
-
-                </div>
-
-
-                <div class="footer-column">
-
-                    <h3>Informations</h3>
-
-                    <a href="#">Mentions légales</a>
-                    <a href="#">Politique de confidentialité</a>
-                    <a href="#">CGU</a>
-
-                </div>
-
-            </div>
-
-
-            <div class="footer-bottom">
-
-                <p>
-                    © 2026 GiftFinder. Tous droits réservés.
-                </p>
-
-                <p>
-                    Fait pour trouver de meilleures idées cadeaux. 🎁
-                </p>
-
-            </div>
-
-        </div>
-
-    </footer>
-
-
-    <!-- =========================
-         SCRIPTS
-    ========================== -->
-
-    <script src="data.js"></script>
-    <script src="app.js"></script>
-
-
-    <!-- =========================
-         PETIT SCRIPT MENU
-    ========================== -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-
-            const menuToggle =
-                document.getElementById("menuToggle");
-
-            const mainNav =
-                document.getElementById("mainNav");
-
-            if (menuToggle && mainNav) {
-
-                menuToggle.addEventListener("click", function () {
-                    mainNav.classList.toggle("active");
-                });
-
-                mainNav.querySelectorAll("a").forEach(function (link) {
-                    link.addEventListener("click", function () {
-                        mainNav.classList.remove("active");
-                    });
-                });
-            }
-
-
-            /*
-             * Les boutons Stripe sont gérés par app.js.
-             * On vérifie simplement que la fonction existe.
-             */
-
-            document
-                .querySelectorAll("[data-payment-product]")
-                .forEach(function (button) {
-
-                    button.addEventListener("click", function () {
-
-                        const product =
-                            button.dataset.paymentProduct;
-
-                        if (
-                            typeof window.createCheckoutSession ===
-                            "function"
-                        ) {
-                            window.createCheckoutSession(product);
-                        } else {
-                            console.error(
-                                "createCheckoutSession() n'est pas disponible."
-                            );
-                        }
-
-                    });
-
-                });
-
-
-            /*
-             * Fermeture du questionnaire
-             */
-
-            const closeQuestionnaireButton =
-                document.getElementById(
-                    "closeQuestionnaireButton"
-                );
-
-            if (closeQuestionnaireButton) {
-                closeQuestionnaireButton.addEventListener(
-                    "click",
-                    function () {
-                        if (
-                            typeof window.closeQuestionnaire ===
-                            "function"
-                        ) {
-                            window.closeQuestionnaire();
-                        }
-                    }
-                );
-            }
-
-
-            /*
-             * Fermeture des résultats
-             */
-
-            const closeResultsButton =
-                document.getElementById(
-                    "closeResultsButton"
-                );
-
-            const resultsModal =
-                document.getElementById(
-                    "resultsModal"
-                );
-
-            if (closeResultsButton && resultsModal) {
-
-                closeResultsButton.addEventListener(
-                    "click",
-                    function () {
-                        resultsModal.classList.remove("active");
-                        resultsModal.setAttribute(
-                            "aria-hidden",
-                            "true"
-                        );
-                    }
-                );
-
-            }
-
-
-            /*
-             * Fermeture d'une modale en cliquant
-             * sur l'arrière-plan
-             */
-
-            document
-                .querySelectorAll(".modal-overlay")
-                .forEach(function (overlay) {
-
-                    overlay.addEventListener(
-                        "click",
-                        function (event) {
-
-                            if (event.target !== overlay) {
-                                return;
-                            }
-
-                            overlay.classList.remove("active");
-                            overlay.setAttribute(
-                                "aria-hidden",
-                                "true"
-                            );
-
-                        }
-                    );
-
-                });
-
-
-            /*
-             * Échap pour fermer les modales
-             */
-
-            document.addEventListener(
-                "keydown",
-                function (event) {
-
-                    if (event.key !== "Escape") {
-                        return;
-                    }
-
-                    document
-                        .querySelectorAll(".modal-overlay.active")
-                        .forEach(function (modal) {
-
-                            modal.classList.remove("active");
-
-                            modal.setAttribute(
-                                "aria-hidden",
-                                "true"
-                            );
-
-                        });
-
-                }
-            );
-
-        });
-    </script>
-
-</body>
-</html>
+\\\<!DOCTYPE html>
+\\\<html lang="fr">
+
+\\\<head>
+&#x20;   \\\<meta charset="UTF-8">
+&#x20;   \\\<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+&#x20;   \\\<title>GiftFinder — Trouve le cadeau parfait\\\</title>
+
+&#x20;   \\\<meta
+&#x20;       name="description"
+&#x20;       content="GiftFinder t'aide à trouver le cadeau parfait grâce à des recommandations personnalisées."
+&#x20;   \\>
+
+&#x20;   \\\<link rel="stylesheet" href="css/style.css">
+
+&#x20;   \\\<style>
+&#x20;       html {
+&#x20;           scroll-behavior: smooth;
+&#x20;       }
+
+&#x20;       body {
+&#x20;           margin: 0;
+&#x20;           overflow-x: hidden;
+&#x20;       }
+
+&#x20;       button,
+&#x20;       input,
+&#x20;       textarea {
+&#x20;           font-family: inherit;
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          HEADER
+&#x20;       \\========================= \\\*/
+
+&#x20;       .main-header {
+&#x20;           position: sticky;
+&#x20;           top: 0;
+&#x20;           z-index: 1000;
+&#x20;           background: rgba(255, 255, 255, .92);
+&#x20;           backdrop-filter: blur(18px);
+&#x20;           border-bottom: 1px solid rgba(0, 0, 0, .06);
+&#x20;       }
+
+&#x20;       .header-inner {
+&#x20;           max-width: 1200px;
+&#x20;           margin: auto;
+&#x20;           padding: 15px 24px;
+&#x20;           display: flex;
+&#x20;           align-items: center;
+&#x20;           justify-content: space-between;
+&#x20;           gap: 20px;
+&#x20;       }
+
+&#x20;       .logo {
+&#x20;           color: #111827;
+&#x20;           text-decoration: none;
+&#x20;           font-size: 1.35rem;
+&#x20;           font-weight: 900;
+&#x20;           white-space: nowrap;
+&#x20;       }
+
+&#x20;       .logo span {
+&#x20;           color: #2563eb;
+&#x20;       }
+
+&#x20;       .main-nav {
+&#x20;           display: flex;
+&#x20;           align-items: center;
+&#x20;           gap: 5px;
+&#x20;       }
+
+&#x20;       .main-nav a {
+&#x20;           color: #374151;
+&#x20;           text-decoration: none;
+&#x20;           font-size: .9rem;
+&#x20;           font-weight: 700;
+&#x20;           padding: 9px 11px;
+&#x20;           border-radius: 10px;
+&#x20;           transition: .2s;
+&#x20;       }
+
+&#x20;       .main-nav a:hover {
+&#x20;           background: #eff6ff;
+&#x20;           color: #2563eb;
+&#x20;       }
+
+&#x20;       .nav-favorite {
+&#x20;           display: flex;
+&#x20;           align-items: center;
+&#x20;           gap: 4px;
+&#x20;       }
+
+&#x20;       \\#favoritesCount {
+&#x20;           min-width: 18px;
+&#x20;           height: 18px;
+&#x20;           display: inline-flex;
+&#x20;           align-items: center;
+&#x20;           justify-content: center;
+&#x20;           background: #2563eb;
+&#x20;           color: white;
+&#x20;           border-radius: 50%;
+&#x20;           font-size: .68rem;
+&#x20;       }
+
+&#x20;       .nav-searches {
+&#x20;           display: flex;
+&#x20;           align-items: center;
+&#x20;           gap: 5px;
+&#x20;           color: #2563eb !important;
+&#x20;           background: #eff6ff;
+&#x20;       }
+
+&#x20;       \\#headerSearchesRemaining {
+&#x20;           min-width: 22px;
+&#x20;           height: 20px;
+&#x20;           padding: 0 5px;
+&#x20;           display: inline-flex;
+&#x20;           align-items: center;
+&#x20;           justify-content: center;
+&#x20;           background: #2563eb;
+&#x20;           color: white;
+&#x20;           border-radius: 999px;
+&#x20;           font-size: .68rem;
+&#x20;           font-weight: 900;
+&#x20;       }
+
+&#x20;       .mobile-menu-btn {
+&#x20;           display: none;
+&#x20;           border: 0;
+&#x20;           background: transparent;
+&#x20;           font-size: 1.6rem;
+&#x20;           cursor: pointer;
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          SECTIONS
+&#x20;       \\========================= \\\*/
+
+&#x20;       .site-section {
+&#x20;           position: relative;
+&#x20;           padding: 100px 24px;
+&#x20;           overflow: hidden;
+&#x20;       }
+
+&#x20;       .section-container {
+&#x20;           max-width: 1150px;
+&#x20;           margin: auto;
+&#x20;           position: relative;
+&#x20;           z-index: 2;
+&#x20;       }
+
+&#x20;       .section-heading {
+&#x20;           max-width: 700px;
+&#x20;           margin: 0 auto 45px;
+&#x20;           text-align: center;
+&#x20;       }
+
+&#x20;       .section-heading h2 {
+&#x20;           margin: 0 0 14px;
+&#x20;           font-size: clamp(2rem, 4vw, 3rem);
+&#x20;           color: #111827;
+&#x20;           letter-spacing: -.035em;
+&#x20;       }
+
+&#x20;       .section-heading p {
+&#x20;           margin: 0;
+&#x20;           color: #6b7280;
+&#x20;           font-size: 1.05rem;
+&#x20;           line-height: 1.7;
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          ACCUEIL
+&#x20;       \\========================= \\\*/
+
+&#x20;       \\#accueil {
+&#x20;           min-height: 650px;
+&#x20;           display: flex;
+&#x20;           align-items: center;
+&#x20;           background:
+&#x20;               radial-gradient(circle at 10% 15%, rgba(37,99,235,.18), transparent 30%),
+&#x20;               radial-gradient(circle at 90% 75%, rgba(96,165,250,.17), transparent 32%),
+&#x20;               linear-gradient(135deg, #f8fbff, #eef5ff, #fff);
+&#x20;       }
+
+&#x20;       \\#accueil::after {
+&#x20;           content: "";
+&#x20;           position: absolute;
+&#x20;           width: 450px;
+&#x20;           height: 450px;
+&#x20;           border-radius: 50%;
+&#x20;           background: rgba(37,99,235,.12);
+&#x20;           filter: blur(100px);
+&#x20;           right: -170px;
+&#x20;           top: -170px;
+&#x20;       }
+
+&#x20;       .hero-content {
+&#x20;           width: 100%;
+&#x20;           max-width: 1150px;
+&#x20;           margin: auto;
+&#x20;           display: grid;
+&#x20;           grid-template-columns: 1.05fr .95fr;
+&#x20;           align-items: center;
+&#x20;           gap: 50px;
+&#x20;           position: relative;
+&#x20;           z-index: 3;
+&#x20;       }
+
+&#x20;       .hero-text {
+&#x20;           text-align: left;
+&#x20;       }
+
+&#x20;       .hero-badge {
+&#x20;           display: inline-flex;
+&#x20;           align-items: center;
+&#x20;           gap: 7px;
+&#x20;           padding: 8px 14px;
+&#x20;           margin-bottom: 20px;
+&#x20;           border-radius: 999px;
+&#x20;           background: rgba(255,255,255,.8);
+&#x20;           border: 1px solid rgba(37,99,235,.1);
+&#x20;           color: #2563eb;
+&#x20;           font-size: .85rem;
+&#x20;           font-weight: 800;
+&#x20;           box-shadow: 0 10px 30px rgba(37,99,235,.08);
+&#x20;       }
+
+&#x20;       .hero-text h1 {
+&#x20;           margin: 0 0 18px;
+&#x20;           font-size: clamp(3rem, 7vw, 5.4rem);
+&#x20;           line-height: .98;
+&#x20;           letter-spacing: -.06em;
+&#x20;           color: #111827;
+&#x20;       }
+
+&#x20;       .hero-text h1 span {
+&#x20;           color: #2563eb;
+&#x20;       }
+
+&#x20;       .hero-subtitle {
+&#x20;           max-width: 620px;
+&#x20;           margin: 0 0 30px;
+&#x20;           color: #5b6473;
+&#x20;           font-size: 1.12rem;
+&#x20;           line-height: 1.7;
+&#x20;       }
+
+&#x20;       .hero-buttons {
+&#x20;           display: flex;
+&#x20;           flex-wrap: wrap;
+&#x20;           gap: 12px;
+&#x20;       }
+
+&#x20;       .hero-primary,
+&#x20;       .hero-secondary {
+&#x20;           display: inline-flex;
+&#x20;           align-items: center;
+&#x20;           justify-content: center;
+&#x20;           padding: 14px 21px;
+&#x20;           border-radius: 13px;
+&#x20;           text-decoration: none;
+&#x20;           font-weight: 800;
+&#x20;           transition: .25s;
+&#x20;       }
+
+&#x20;       .hero-primary {
+&#x20;           background: #2563eb;
+&#x20;           color: white;
+&#x20;           box-shadow: 0 12px 28px rgba(37,99,235,.25);
+&#x20;       }
+
+&#x20;       .hero-primary:hover {
+&#x20;           background: #1d4ed8;
+&#x20;           transform: translateY(-2px);
+&#x20;       }
+
+&#x20;       .hero-secondary {
+&#x20;           color: #1f2937;
+&#x20;           background: rgba(255,255,255,.85);
+&#x20;           border: 1px solid rgba(0,0,0,.07);
+&#x20;       }
+
+&#x20;       .hero-secondary:hover {
+&#x20;           transform: translateY(-2px);
+&#x20;           background: white;
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          CADEAU
+&#x20;       \\========================= \\\*/
+
+&#x20;       .hero-gift-area {
+&#x20;           min-height: 360px;
+&#x20;           display: flex;
+&#x20;           align-items: center;
+&#x20;           justify-content: center;
+&#x20;       }
+
+&#x20;       .gift-scene {
+&#x20;           width: 280px;
+&#x20;           height: 280px;
+&#x20;           border-radius: 38px;
+&#x20;           display: flex;
+&#x20;           align-items: center;
+&#x20;           justify-content: center;
+&#x20;           position: relative;
+&#x20;           background:
+&#x20;               radial-gradient(circle at 30% 20%, rgba(255,255,255,.95), transparent 35%),
+&#x20;               rgba(255,255,255,.65);
+&#x20;           border: 1px solid rgba(255,255,255,.9);
+&#x20;           box-shadow:
+&#x20;               0 30px 70px rgba(37,99,235,.12),
+&#x20;               inset 0 1px 0 rgba(255,255,255,.9);
+&#x20;       }
+
+&#x20;       .gift-box {
+&#x20;           font-size: 6.8rem;
+&#x20;           animation: giftFloat 4s ease-in-out infinite;
+&#x20;           filter: drop-shadow(0 15px 15px rgba(0,0,0,.12));
+&#x20;       }
+
+&#x20;       @keyframes giftFloat {
+&#x20;           0%, 100% {
+&#x20;               transform: translateY(0) rotate(-2deg);
+&#x20;           }
+
+&#x20;           50% {
+&#x20;               transform: translateY(-15px) rotate(2deg);
+&#x20;           }
+&#x20;       }
+
+&#x20;       .floating-star {
+&#x20;           position: absolute;
+&#x20;           color: #2563eb;
+&#x20;           animation: starFloat 3s ease-in-out infinite;
+&#x20;       }
+
+&#x20;       .star-one {
+&#x20;           top: 42px;
+&#x20;           left: 42px;
+&#x20;           font-size: 1.3rem;
+&#x20;       }
+
+&#x20;       .star-two {
+&#x20;           bottom: 42px;
+&#x20;           right: 40px;
+&#x20;           font-size: 1rem;
+&#x20;           animation-delay: .8s;
+&#x20;       }
+
+&#x20;       @keyframes starFloat {
+&#x20;           0%, 100% {
+&#x20;               transform: translateY(0);
+&#x20;               opacity: .5;
+&#x20;           }
+
+&#x20;           50% {
+&#x20;               transform: translateY(-8px);
+&#x20;               opacity: 1;
+&#x20;           }
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          EXPLORER
+&#x20;       \\========================= \\\*/
+
+&#x20;       \\#explore {
+&#x20;           background:
+&#x20;               radial-gradient(circle at 90% 10%, rgba(124,58,237,.14), transparent 28%),
+&#x20;               linear-gradient(180deg, #fff, #faf7ff);
+&#x20;       }
+
+&#x20;       .explore-search {
+&#x20;           max-width: 760px;
+&#x20;           margin: 0 auto 45px;
+&#x20;           display: flex;
+&#x20;           gap: 8px;
+&#x20;           padding: 8px;
+&#x20;           background: white;
+&#x20;           border: 1px solid rgba(124,58,237,.1);
+&#x20;           border-radius: 18px;
+&#x20;           box-shadow: 0 20px 55px rgba(124,58,237,.09);
+&#x20;       }
+
+&#x20;       .explore-search input {
+&#x20;           flex: 1;
+&#x20;           min-width: 0;
+&#x20;           padding: 14px 15px;
+&#x20;           border: 0;
+&#x20;           outline: 0;
+&#x20;           font-size: 1rem;
+&#x20;       }
+
+&#x20;       .explore-search button {
+&#x20;           border: 0;
+&#x20;           padding: 0 21px;
+&#x20;           border-radius: 12px;
+&#x20;           background: #7c3aed;
+&#x20;           color: white;
+&#x20;           font-weight: 800;
+&#x20;           cursor: pointer;
+&#x20;           transition: .2s;
+&#x20;       }
+
+&#x20;       .explore-search button:hover {
+&#x20;           background: #6d28d9;
+&#x20;           transform: translateY(-1px);
+&#x20;       }
+
+&#x20;       .category-grid {
+&#x20;           display: grid;
+&#x20;           grid-template-columns: repeat(4, 1fr);
+&#x20;           gap: 15px;
+&#x20;       }
+
+&#x20;       .category-button {
+&#x20;           border: 1px solid rgba(124,58,237,.1);
+&#x20;           background: rgba(255,255,255,.9);
+&#x20;           padding: 22px 15px;
+&#x20;           border-radius: 18px;
+&#x20;           cursor: pointer;
+&#x20;           color: #29223c;
+&#x20;           font-weight: 800;
+&#x20;           transition: .25s;
+&#x20;       }
+
+&#x20;       .category-button:hover {
+&#x20;           transform: translateY(-5px);
+&#x20;           border-color: rgba(124,58,237,.28);
+&#x20;           box-shadow: 0 15px 35px rgba(124,58,237,.12);
+&#x20;       }
+
+&#x20;       .category-icon {
+&#x20;           display: block;
+&#x20;           margin-bottom: 9px;
+&#x20;           font-size: 2rem;
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          COMMENT ÇA MARCHE
+&#x20;       \\========================= \\\*/
+
+&#x20;       \\#comment-ca-marche {
+&#x20;           background:
+&#x20;               radial-gradient(circle at 10% 20%, rgba(16,185,129,.12), transparent 28%),
+&#x20;               linear-gradient(135deg, #f5fffb, #fff);
+&#x20;       }
+
+&#x20;       .steps-grid {
+&#x20;           display: grid;
+&#x20;           grid-template-columns: repeat(3, 1fr);
+&#x20;           gap: 20px;
+&#x20;       }
+
+&#x20;       .step-card {
+&#x20;           padding: 30px;
+&#x20;           background: rgba(255,255,255,.9);
+&#x20;           border: 1px solid rgba(16,185,129,.12);
+&#x20;           border-radius: 24px;
+&#x20;           box-shadow: 0 20px 45px rgba(16,185,129,.07);
+&#x20;       }
+
+&#x20;       .step-number {
+&#x20;           width: 44px;
+&#x20;           height: 44px;
+&#x20;           display: flex;
+&#x20;           align-items: center;
+&#x20;           justify-content: center;
+&#x20;           margin-bottom: 20px;
+&#x20;           border-radius: 14px;
+&#x20;           background: #10b981;
+&#x20;           color: white;
+&#x20;           font-weight: 900;
+&#x20;       }
+
+&#x20;       .step-card h3 {
+&#x20;           margin: 0 0 10px;
+&#x20;           color: #111827;
+&#x20;       }
+
+&#x20;       .step-card p {
+&#x20;           margin: 0;
+&#x20;           color: #687385;
+&#x20;           line-height: 1.7;
+&#x20;       }
+
+&#x20;       .how-questions {
+&#x20;           margin-top: 45px;
+&#x20;           padding: 30px;
+&#x20;           background: white;
+&#x20;           border: 1px solid rgba(16,185,129,.12);
+&#x20;           border-radius: 24px;
+&#x20;       }
+
+&#x20;       .how-questions h3 {
+&#x20;           margin-top: 0;
+&#x20;       }
+
+&#x20;       .question-points {
+&#x20;           display: flex;
+&#x20;           flex-wrap: wrap;
+&#x20;           gap: 10px;
+&#x20;       }
+
+&#x20;       .question-point {
+&#x20;           padding: 10px 14px;
+&#x20;           border-radius: 999px;
+&#x20;           background: #ecfdf5;
+&#x20;           color: #047857;
+&#x20;           font-weight: 700;
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          PREMIUM
+&#x20;       \\========================= \\\*/
+
+&#x20;       \\#premium {
+&#x20;           background:
+&#x20;               radial-gradient(circle at 80% 20%, rgba(245,158,11,.16), transparent 30%),
+&#x20;               linear-gradient(135deg, #fffaf0, #fff);
+&#x20;       }
+
+&#x20;       .premium-box {
+&#x20;           max-width: 900px;
+&#x20;           margin: auto;
+&#x20;           padding: 45px;
+&#x20;           display: grid;
+&#x20;           grid-template-columns: 1fr auto;
+&#x20;           gap: 35px;
+&#x20;           align-items: center;
+&#x20;           background: rgba(255,255,255,.92);
+&#x20;           border: 1px solid rgba(245,158,11,.18);
+&#x20;           border-radius: 30px;
+&#x20;           box-shadow: 0 30px 80px rgba(245,158,11,.1);
+&#x20;       }
+
+&#x20;       .premium-badge {
+&#x20;           display: inline-block;
+&#x20;           padding: 8px 13px;
+&#x20;           margin-bottom: 15px;
+&#x20;           border-radius: 999px;
+&#x20;           background: #fff7ed;
+&#x20;           color: #c2410c;
+&#x20;           font-size: .8rem;
+&#x20;           font-weight: 800;
+&#x20;       }
+
+&#x20;       .premium-box h2 {
+&#x20;           margin: 0 0 12px;
+&#x20;           font-size: 2.5rem;
+&#x20;       }
+
+&#x20;       .premium-box p {
+&#x20;           color: #687385;
+&#x20;           line-height: 1.7;
+&#x20;       }
+
+&#x20;       .premium-price {
+&#x20;           color: #ea580c;
+&#x20;           font-size: 2.4rem;
+&#x20;           font-weight: 900;
+&#x20;           white-space: nowrap;
+&#x20;       }
+
+&#x20;       .premium-price small {
+&#x20;           color: #6b7280;
+&#x20;           font-size: .95rem;
+&#x20;       }
+
+&#x20;       .premium-list {
+&#x20;           list-style: none;
+&#x20;           padding: 0;
+&#x20;           margin: 22px 0 0;
+&#x20;       }
+
+&#x20;       .premium-list li {
+&#x20;           margin: 10px 0;
+&#x20;           color: #4b5563;
+&#x20;       }
+
+&#x20;       .premium-button {
+&#x20;           display: inline-flex;
+&#x20;           margin-top: 24px;
+&#x20;           padding: 14px 22px;
+&#x20;           border-radius: 13px;
+&#x20;           background: #ea580c;
+&#x20;           color: white;
+&#x20;           text-decoration: none;
+&#x20;           font-weight: 800;
+&#x20;           cursor: pointer;
+&#x20;           border: 0;
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          BOUTIQUE
+&#x20;       \\========================= \\\*/
+
+&#x20;       \\#boutique {
+&#x20;           background:
+&#x20;               radial-gradient(circle at 15% 20%, rgba(37,99,235,.13), transparent 30%),
+&#x20;               linear-gradient(180deg, #f8fbff, #fff);
+&#x20;       }
+
+&#x20;       .shop-grid {
+&#x20;           display: grid;
+&#x20;           grid-template-columns: repeat(2, 1fr);
+&#x20;           gap: 22px;
+&#x20;           max-width: 850px;
+&#x20;           margin: auto;
+&#x20;       }
+
+&#x20;       .shop-card {
+&#x20;           padding: 32px;
+&#x20;           background: white;
+&#x20;           border: 1px solid rgba(37,99,235,.12);
+&#x20;           border-radius: 24px;
+&#x20;           box-shadow: 0 20px 50px rgba(37,99,235,.07);
+&#x20;           text-align: center;
+&#x20;           transition: .25s;
+&#x20;       }
+
+&#x20;       .shop-card:hover {
+&#x20;           transform: translateY(-4px);
+&#x20;           box-shadow: 0 25px 60px rgba(37,99,235,.12);
+&#x20;       }
+
+&#x20;       .shop-icon {
+&#x20;           font-size: 2.8rem;
+&#x20;           margin-bottom: 10px;
+&#x20;       }
+
+&#x20;       .shop-card h3 {
+&#x20;           margin: 8px 0;
+&#x20;           font-size: 1.5rem;
+&#x20;           color: #111827;
+&#x20;       }
+
+&#x20;       .shop-card p {
+&#x20;           color: #687385;
+&#x20;           line-height: 1.6;
+&#x20;       }
+
+&#x20;       .pack-price {
+&#x20;           display: block;
+&#x20;           margin-top: 18px;
+&#x20;           color: #2563eb;
+&#x20;           font-size: 2rem;
+&#x20;           font-weight: 900;
+&#x20;       }
+
+&#x20;       .pack-button {
+&#x20;           width: 100%;
+&#x20;           justify-content: center;
+&#x20;           background: #2563eb;
+&#x20;           margin-top: 20px;
+&#x20;       }
+
+&#x20;       .pack-button:hover {
+&#x20;           background: #1d4ed8;
+&#x20;       }
+
+&#x20;       .shop-info {
+&#x20;           max-width: 700px;
+&#x20;           margin: 25px auto 0;
+&#x20;           padding: 18px 22px;
+&#x20;           border-radius: 16px;
+&#x20;           background: #eff6ff;
+&#x20;           color: #1e40af;
+&#x20;           text-align: center;
+&#x20;           line-height: 1.6;
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          GUIDES
+&#x20;       \\========================= \\\*/
+
+&#x20;       \\#guides {
+&#x20;           background:
+&#x20;               radial-gradient(circle at 15% 10%, rgba(236,72,153,.13), transparent 28%),
+&#x20;               linear-gradient(180deg, #fff8fc, #fff);
+&#x20;       }
+
+&#x20;       .guides-grid {
+&#x20;           display: grid;
+&#x20;           grid-template-columns: repeat(3, 1fr);
+&#x20;           gap: 18px;
+&#x20;       }
+
+&#x20;       .guide-card {
+&#x20;           display: block;
+&#x20;           padding: 25px;
+&#x20;           background: white;
+&#x20;           border: 1px solid rgba(236,72,153,.12);
+&#x20;           border-radius: 22px;
+&#x20;           color: inherit;
+&#x20;           text-decoration: none;
+&#x20;           transition: .25s;
+&#x20;       }
+
+&#x20;       .guide-card:hover {
+&#x20;           transform: translateY(-5px);
+&#x20;           box-shadow: 0 18px 45px rgba(236,72,153,.1);
+&#x20;       }
+
+&#x20;       .guide-card span {
+&#x20;           font-size: 2rem;
+&#x20;       }
+
+&#x20;       .guide-card h3 {
+&#x20;           margin: 17px 0 9px;
+&#x20;       }
+
+&#x20;       .guide-card p {
+&#x20;           margin: 0;
+&#x20;           color: #6b7280;
+&#x20;           line-height: 1.6;
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          FAVORIS
+&#x20;       \\========================= \\\*/
+
+&#x20;       \\#favoris {
+&#x20;           background:
+&#x20;               radial-gradient(circle at 90% 15%, rgba(239,68,68,.12), transparent 28%),
+&#x20;               linear-gradient(135deg, #fff8f8, #fff);
+&#x20;       }
+
+&#x20;       .favorites-empty {
+&#x20;           max-width: 650px;
+&#x20;           margin: auto;
+&#x20;           padding: 45px 25px;
+&#x20;           text-align: center;
+&#x20;           background: white;
+&#x20;           border: 1px solid rgba(239,68,68,.11);
+&#x20;           border-radius: 25px;
+&#x20;       }
+
+&#x20;       .favorites-heart {
+&#x20;           margin-bottom: 15px;
+&#x20;           font-size: 3rem;
+&#x20;       }
+
+&#x20;       .favorites-empty p {
+&#x20;           color: #6b7280;
+&#x20;           line-height: 1.7;
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          COMPTE
+&#x20;       \\========================= \\\*/
+
+&#x20;       \\#compte {
+&#x20;           background:
+&#x20;               radial-gradient(circle at 20% 15%, rgba(6,182,212,.12), transparent 30%),
+&#x20;               linear-gradient(180deg, #f4fdff, #fff);
+&#x20;       }
+
+&#x20;       .account-grid {
+&#x20;           display: grid;
+&#x20;           grid-template-columns: repeat(3, 1fr);
+&#x20;           gap: 18px;
+&#x20;       }
+
+&#x20;       .account-card {
+&#x20;           padding: 28px;
+&#x20;           background: white;
+&#x20;           border: 1px solid rgba(6,182,212,.12);
+&#x20;           border-radius: 22px;
+&#x20;       }
+
+&#x20;       .account-card span {
+&#x20;           font-size: 2rem;
+&#x20;       }
+
+&#x20;       .account-card h3 {
+&#x20;           margin: 15px 0 8px;
+&#x20;       }
+
+&#x20;       .account-card p {
+&#x20;           margin: 0;
+&#x20;           color: #687385;
+&#x20;           line-height: 1.6;
+&#x20;       }
+
+&#x20;       .search-counter-card {
+&#x20;           max-width: 700px;
+&#x20;           margin: 0 auto 25px;
+&#x20;           text-align: center;
+&#x20;           padding: 35px;
+&#x20;           background: white;
+&#x20;           border: 1px solid rgba(37,99,235,.12);
+&#x20;           border-radius: 25px;
+&#x20;           box-shadow: 0 20px 50px rgba(37,99,235,.07);
+&#x20;       }
+
+&#x20;       .search-counter-icon {
+&#x20;           font-size: 2.8rem;
+&#x20;       }
+
+&#x20;       .search-counter-number {
+&#x20;           margin: 12px 0;
+&#x20;           color: #2563eb;
+&#x20;           font-size: 2.8rem;
+&#x20;           font-weight: 900;
+&#x20;       }
+
+&#x20;       .search-counter-label {
+&#x20;           color: #4b5563;
+&#x20;           font-weight: 700;
+&#x20;       }
+
+&#x20;       .search-counter-info {
+&#x20;           margin-top: 10px !important;
+&#x20;           font-size: .9rem;
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          FAQ
+&#x20;       \\========================= \\\*/
+
+&#x20;       \\#faq {
+&#x20;           background:
+&#x20;               radial-gradient(circle at 85% 20%, rgba(79,70,229,.13), transparent 30%),
+&#x20;               linear-gradient(135deg, #f7f7ff, #fff);
+&#x20;       }
+
+&#x20;       .faq-list {
+&#x20;           max-width: 800px;
+&#x20;           margin: auto;
+&#x20;           display: grid;
+&#x20;           gap: 12px;
+&#x20;       }
+
+&#x20;       .faq-item {
+&#x20;           padding: 20px 22px;
+&#x20;           background: white;
+&#x20;           border: 1px solid rgba(79,70,229,.1);
+&#x20;           border-radius: 17px;
+&#x20;       }
+
+&#x20;       .faq-item summary {
+&#x20;           cursor: pointer;
+&#x20;           color: #25234a;
+&#x20;           font-weight: 800;
+&#x20;       }
+
+&#x20;       .faq-item p {
+&#x20;           margin-bottom: 0;
+&#x20;           color: #687385;
+&#x20;           line-height: 1.7;
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          FOOTER
+&#x20;       \\========================= \\\*/
+
+&#x20;       footer {
+&#x20;           min-height: 70px;
+&#x20;           display: flex;
+&#x20;           align-items: center;
+&#x20;           justify-content: center;
+&#x20;           background: #111827;
+&#x20;           color: #9ca3af;
+&#x20;           font-size: .8rem;
+&#x20;           text-align: center;
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          QUESTIONNAIRE
+&#x20;       \\========================= \\\*/
+
+&#x20;       .questionnaire-modal {
+&#x20;           position: fixed;
+&#x20;           inset: 0;
+&#x20;           z-index: 4000;
+&#x20;           display: none;
+&#x20;           align-items: center;
+&#x20;           justify-content: center;
+&#x20;           padding: 20px;
+&#x20;       }
+
+&#x20;       .questionnaire-modal.active {
+&#x20;           display: flex;
+&#x20;       }
+
+&#x20;       .questionnaire-overlay {
+&#x20;           position: absolute;
+&#x20;           inset: 0;
+&#x20;           background: rgba(15,23,42,.72);
+&#x20;           backdrop-filter: blur(8px);
+&#x20;       }
+
+&#x20;       .questionnaire-box {
+&#x20;           position: relative;
+&#x20;           z-index: 2;
+&#x20;           width: 100%;
+&#x20;           max-width: 700px;
+&#x20;           max-height: 90vh;
+&#x20;           overflow-y: auto;
+&#x20;           padding: 32px;
+&#x20;           background: white;
+&#x20;           border-radius: 25px;
+&#x20;           box-shadow: 0 30px 90px rgba(0,0,0,.25);
+&#x20;       }
+
+&#x20;       .questionnaire-close {
+&#x20;           position: absolute;
+&#x20;           top: 15px;
+&#x20;           right: 18px;
+&#x20;           width: 38px;
+&#x20;           height: 38px;
+&#x20;           border: 0;
+&#x20;           border-radius: 50%;
+&#x20;           background: #f3f4f6;
+&#x20;           font-size: 1.5rem;
+&#x20;           cursor: pointer;
+&#x20;       }
+
+&#x20;       .questionnaire-progress {
+&#x20;           height: 8px;
+&#x20;           overflow: hidden;
+&#x20;           background: #e5e7eb;
+&#x20;           border-radius: 999px;
+&#x20;       }
+
+&#x20;       .questionnaire-progress-bar {
+&#x20;           width: 0;
+&#x20;           height: 100%;
+&#x20;           background: #2563eb;
+&#x20;           transition: width .25s;
+&#x20;       }
+
+&#x20;       .questionnaire-header p {
+&#x20;           color: #6b7280;
+&#x20;           font-size: .9rem;
+&#x20;           font-weight: 700;
+&#x20;       }
+
+&#x20;       .question-container {
+&#x20;           margin: 30px 0;
+&#x20;       }
+
+&#x20;       .question-container h2 {
+&#x20;           margin-bottom: 22px;
+&#x20;           color: #111827;
+&#x20;       }
+
+&#x20;       .question-options {
+&#x20;           display: grid;
+&#x20;           gap: 12px;
+&#x20;       }
+
+&#x20;       .question-option {
+&#x20;           width: 100%;
+&#x20;           padding: 16px;
+&#x20;           border: 1px solid #e5e7eb;
+&#x20;           border-radius: 14px;
+&#x20;           background: #fff;
+&#x20;           text-align: left;
+&#x20;           cursor: pointer;
+&#x20;           transition: .2s;
+&#x20;           font-weight: 700;
+&#x20;       }
+
+&#x20;       .question-option:hover,
+&#x20;       .question-option.selected {
+&#x20;           border-color: #2563eb;
+&#x20;           background: #eff6ff;
+&#x20;       }
+
+&#x20;       .question-input {
+&#x20;           width: 100%;
+&#x20;           box-sizing: border-box;
+&#x20;           padding: 15px;
+&#x20;           border: 1px solid #d1d5db;
+&#x20;           border-radius: 13px;
+&#x20;           outline: none;
+&#x20;           font-size: 1rem;
+&#x20;       }
+
+&#x20;       .question-input:focus {
+&#x20;           border-color: #2563eb;
+&#x20;       }
+
+&#x20;       .questionnaire-actions {
+&#x20;           display: flex;
+&#x20;           justify-content: space-between;
+&#x20;           gap: 12px;
+&#x20;       }
+
+&#x20;       .questionnaire-secondary,
+&#x20;       .questionnaire-primary {
+&#x20;           padding: 13px 18px;
+&#x20;           border-radius: 12px;
+&#x20;           font-weight: 800;
+&#x20;           cursor: pointer;
+&#x20;       }
+
+&#x20;       .questionnaire-secondary {
+&#x20;           border: 1px solid #e5e7eb;
+&#x20;           background: white;
+&#x20;           color: #374151;
+&#x20;       }
+
+&#x20;       .questionnaire-primary {
+&#x20;           border: 0;
+&#x20;           background: #2563eb;
+&#x20;           color: white;
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          RÉSULTATS
+&#x20;          STYLE AMAZON
+&#x20;       \\========================= \\\*/
+
+&#x20;       \\#giftResults {
+&#x20;           display: none;
+&#x20;           background: #f8fafc;
+&#x20;           padding: 65px 24px;
+&#x20;       }
+
+&#x20;       .results-container {
+&#x20;           max-width: 1000px;
+&#x20;           margin: 0 auto;
+&#x20;       }
+
+&#x20;       .results-heading {
+&#x20;           margin-bottom: 25px;
+&#x20;       }
+
+&#x20;       .results-heading h2 {
+&#x20;           margin: 0 0 8px;
+&#x20;           color: #111827;
+&#x20;           font-size: clamp(1.8rem, 4vw, 2.5rem);
+&#x20;       }
+
+&#x20;       .results-heading p {
+&#x20;           margin: 0;
+&#x20;           color: #6b7280;
+&#x20;       }
+
+&#x20;       .results-grid {
+&#x20;           display: flex;
+&#x20;           flex-direction: column;
+&#x20;           gap: 12px;
+&#x20;       }
+
+&#x20;       .result-card {
+&#x20;           width: 100%;
+&#x20;           min-height: 150px;
+&#x20;           box-sizing: border-box;
+
+&#x20;           display: flex;
+&#x20;           align-items: center;
+&#x20;           gap: 22px;
+
+&#x20;           padding: 16px;
+
+&#x20;           background: #fff;
+&#x20;           border: 1px solid #e5e7eb;
+&#x20;           border-radius: 12px;
+
+&#x20;           box-shadow: 0 2px 8px rgba(0,0,0,.04);
+
+&#x20;           transition:
+&#x20;               transform .2s ease,
+&#x20;               box-shadow .2s ease,
+&#x20;               border-color .2s ease;
+&#x20;       }
+
+&#x20;       .result-card:hover {
+&#x20;           transform: translateY(-2px);
+&#x20;           border-color: #d1d5db;
+&#x20;           box-shadow: 0 8px 24px rgba(0,0,0,.08);
+&#x20;       }
+
+&#x20;       .result-image {
+&#x20;           flex: 0 0 150px;
+&#x20;           width: 150px;
+&#x20;           height: 150px;
+
+&#x20;           display: flex;
+&#x20;           align-items: center;
+&#x20;           justify-content: center;
+
+&#x20;           background: #fff;
+&#x20;           border-radius: 8px;
+&#x20;           overflow: hidden;
+&#x20;       }
+
+&#x20;       .result-image img {
+&#x20;           width: 100%;
+&#x20;           height: 100%;
+&#x20;           object-fit: contain;
+&#x20;       }
+
+&#x20;       .result-image-placeholder {
+&#x20;           width: 100%;
+&#x20;           height: 100%;
+
+&#x20;           display: flex;
+&#x20;           align-items: center;
+&#x20;           justify-content: center;
+
+&#x20;           background: #f3f4f6;
+&#x20;           color: #9ca3af;
+
+&#x20;           font-size: 3rem;
+&#x20;       }
+
+&#x20;       .result-content {
+&#x20;           flex: 1;
+&#x20;           min-width: 0;
+&#x20;           padding: 5px 0;
+&#x20;       }
+
+&#x20;       .result-content h3 {
+&#x20;           margin: 0 0 12px;
+
+&#x20;           color: #111827;
+&#x20;           font-size: 1.15rem;
+&#x20;           line-height: 1.4;
+&#x20;           font-weight: 800;
+&#x20;       }
+
+&#x20;       .result-price {
+&#x20;           margin: 0 0 15px;
+
+&#x20;           color: #111827;
+&#x20;           font-size: 1.25rem;
+&#x20;           font-weight: 900;
+&#x20;       }
+
+&#x20;       .result-amazon-link {
+&#x20;           display: inline-flex;
+&#x20;           align-items: center;
+&#x20;           justify-content: center;
+
+&#x20;           padding: 10px 15px;
+
+&#x20;           border-radius: 8px;
+
+&#x20;           background: #2563eb;
+&#x20;           color: white;
+
+&#x20;           text-decoration: none;
+&#x20;           font-size: .9rem;
+&#x20;           font-weight: 800;
+
+&#x20;           transition: .2s;
+&#x20;       }
+
+&#x20;       .result-amazon-link:hover {
+&#x20;           background: #1d4ed8;
+&#x20;           transform: translateY(-1px);
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          ÉCRAN DE CHARGEMENT
+&#x20;       \\========================= \\\*/
+
+&#x20;       .gift-loading {
+&#x20;           position: fixed;
+&#x20;           inset: 0;
+&#x20;           z-index: 5000;
+
+&#x20;           display: none;
+&#x20;           align-items: center;
+&#x20;           justify-content: center;
+
+&#x20;           background: rgba(255,255,255,.96);
+&#x20;           backdrop-filter: blur(12px);
+&#x20;       }
+
+&#x20;       .gift-loading.active {
+&#x20;           display: flex;
+&#x20;       }
+
+&#x20;       .gift-loading-box {
+&#x20;           text-align: center;
+&#x20;           padding: 35px;
+&#x20;       }
+
+&#x20;       .gift-loading-icon {
+&#x20;           font-size: 4rem;
+&#x20;           animation: loadingGift 1.2s ease-in-out infinite;
+&#x20;       }
+
+&#x20;       @keyframes loadingGift {
+&#x20;           0%, 100% {
+&#x20;               transform: translateY(0) rotate(-5deg);
+&#x20;           }
+
+&#x20;           50% {
+&#x20;               transform: translateY(-12px) rotate(5deg);
+&#x20;           }
+&#x20;       }
+
+&#x20;       .gift-loading-box h2 {
+&#x20;           margin: 20px 0 8px;
+&#x20;           color: #111827;
+&#x20;       }
+
+&#x20;       .gift-loading-box p {
+&#x20;           margin: 0;
+&#x20;           color: #6b7280;
+&#x20;       }
+
+&#x20;       .loading-dots {
+&#x20;           margin-top: 18px;
+&#x20;           display: flex;
+&#x20;           justify-content: center;
+&#x20;           gap: 7px;
+&#x20;       }
+
+&#x20;       .loading-dots span {
+&#x20;           width: 8px;
+&#x20;           height: 8px;
+&#x20;           border-radius: 50%;
+&#x20;           background: #2563eb;
+&#x20;           animation: loadingDot 1s infinite;
+&#x20;       }
+
+&#x20;       .loading-dots span:nth-child(2) {
+&#x20;           animation-delay: .15s;
+&#x20;       }
+
+&#x20;       .loading-dots span:nth-child(3) {
+&#x20;           animation-delay: .3s;
+&#x20;       }
+
+&#x20;       @keyframes loadingDot {
+&#x20;           0%, 100% {
+&#x20;               transform: translateY(0);
+&#x20;               opacity: .4;
+&#x20;           }
+
+&#x20;           50% {
+&#x20;               transform: translateY(-6px);
+&#x20;               opacity: 1;
+&#x20;           }
+&#x20;       }
+
+&#x20;       /\\\* =========================
+&#x20;          RESPONSIVE
+&#x20;       \\========================= \\\*/
+
+&#x20;       @media (max-width: 950px) {
+
+&#x20;           .hero-content {
+&#x20;               grid-template-columns: 1fr;
+&#x20;               text-align: center;
+&#x20;           }
+
+&#x20;           .hero-text {
+&#x20;               text-align: center;
+&#x20;           }
+
+&#x20;           .hero-subtitle {
+&#x20;               margin-left: auto;
+&#x20;               margin-right: auto;
+&#x20;           }
+
+&#x20;           .hero-buttons {
+&#x20;               justify-content: center;
+&#x20;           }
+
+&#x20;           .category-grid {
+&#x20;               grid-template-columns: repeat(2, 1fr);
+&#x20;           }
+
+&#x20;           .steps-grid,
+&#x20;           .guides-grid,
+&#x20;           .account-grid {
+&#x20;               grid-template-columns: 1fr;
+&#x20;           }
+
+&#x20;           .shop-grid {
+&#x20;               grid-template-columns: 1fr;
+&#x20;           }
+
+&#x20;           .premium-box {
+&#x20;               grid-template-columns: 1fr;
+&#x20;           }
+&#x20;       }
+
+&#x20;       @media (max-width: 700px) {
+
+&#x20;           .main-nav {
+&#x20;               position: absolute;
+&#x20;               left: 0;
+&#x20;               right: 0;
+&#x20;               top: 100%;
+&#x20;               display: none;
+&#x20;               flex-direction: column;
+&#x20;               align-items: stretch;
+&#x20;               padding: 12px 20px;
+&#x20;               background: white;
+&#x20;               box-shadow: 0 15px 30px rgba(0,0,0,.08);
+&#x20;           }
+
+&#x20;           .main-nav.open {
+&#x20;               display: flex;
+&#x20;           }
+
+&#x20;           .main-nav a {
+&#x20;               text-align: center;
+&#x20;           }
+
+&#x20;           .mobile-menu-btn {
+&#x20;               display: block;
+&#x20;           }
+
+&#x20;           .hero-text h1 {
+&#x20;               font-size: 3.2rem;
+&#x20;           }
+
+&#x20;           .gift-scene {
+&#x20;               width: 245px;
+&#x20;               height: 245px;
+&#x20;           }
+
+&#x20;           .gift-box {
+&#x20;               font-size: 5.8rem;
+&#x20;           }
+
+&#x20;           .explore-search {
+&#x20;               flex-direction: column;
+&#x20;           }
+
+&#x20;           .explore-search button {
+&#x20;               padding: 13px;
+&#x20;           }
+
+&#x20;           .premium-box {
+&#x20;               padding: 30px;
+&#x20;           }
+
+&#x20;           .category-grid {
+&#x20;               grid-template-columns: repeat(2, 1fr);
+&#x20;           }
+
+&#x20;           .questionnaire-box {
+&#x20;               padding: 24px;
+&#x20;           }
+
+&#x20;           /\\\* Résultats téléphone \\\*/
+
+&#x20;           \\#giftResults {
+&#x20;               padding: 45px 14px;
+&#x20;           }
+
+&#x20;           .result-card {
+&#x20;               min-height: 120px;
+&#x20;               gap: 14px;
+&#x20;               padding: 12px;
+&#x20;           }
+
+&#x20;           .result-image {
+&#x20;               flex: 0 0 105px;
+&#x20;               width: 105px;
+&#x20;               height: 105px;
+&#x20;           }
+
+&#x20;           .result-content h3 {
+&#x20;               font-size: 1rem;
+&#x20;               margin-bottom: 7px;
+&#x20;           }
+
+&#x20;           .result-price {
+&#x20;               font-size: 1.1rem;
+&#x20;               margin-bottom: 9px;
+&#x20;           }
+
+&#x20;           .result-amazon-link {
+&#x20;               padding: 8px 11px;
+&#x20;               font-size: .8rem;
+&#x20;           }
+&#x20;       }
+&#x20;   \\\</style>
+\\\</head>
+
+\\\<body>
+
+&#x20;   \\\<!-- =========================
+&#x20;        HEADER
+&#x20;   \\========================== -->
+
+&#x20;   \\\<header class="main-header">
+
+&#x20;       \\\<div class="header-inner">
+
+&#x20;           \\\<a href="#accueil" class="logo">
+&#x20;               Gift\\\<span>Finder\\\</span> ✦
+&#x20;           \\\</a>
+
+&#x20;           \\\<button
+&#x20;               type="button"
+&#x20;               class="mobile-menu-btn"
+&#x20;               id="mobileMenuButton"
+&#x20;               aria-label="Ouvrir le menu"
+&#x20;           \\>
+&#x20;               ☰
+&#x20;           \\\</button>
+
+&#x20;           \\\<nav class="main-nav" id="mainNav">
+
+&#x20;               \\\<a href="#accueil">
+&#x20;                   Accueil
+&#x20;               \\\</a>
+
+&#x20;               \\\<a href="#explore">
+&#x20;                   🎁 Explorer
+&#x20;               \\\</a>
+
+&#x20;               \\\<a href="#comment-ca-marche">
+&#x20;                   ⚡ Comment ça marche
+&#x20;               \\\</a>
+
+&#x20;               \\\<a href="#premium">
+&#x20;                   ✨ Premium
+&#x20;               \\\</a>
+
+&#x20;               \\\<a href="#boutique">
+&#x20;                   🛍️ Boutique
+&#x20;               \\\</a>
+
+&#x20;               \\\<a href="#guides">
+&#x20;                   💡 Guides
+&#x20;               \\\</a>
+
+&#x20;               \\\<a href="#favoris" class="nav-favorite">
+&#x20;                   ❤️ Favoris
+&#x20;                   \\\<span id="favoritesCount">0\\\</span>
+&#x20;               \\\</a>
+
+&#x20;               \\\<a href="#compte" class="nav-searches">
+&#x20;                   🔎
+&#x20;                   \\\<span id="headerSearchesRemaining">1\\\</span>
+&#x20;               \\\</a>
+
+&#x20;               \\\<a href="#compte">
+&#x20;                   👤 Mon compte
+&#x20;               \\\</a>
+
+&#x20;           \\\</nav>
+
+&#x20;       \\\</div>
+
+&#x20;   \\\</header>
+
+&#x20;   \\\<!-- =========================
+&#x20;        CONTENU
+&#x20;   \\========================== -->
+
+&#x20;   \\\<main>
+
+&#x20;       \\\<!-- ACCUEIL -->
+
+&#x20;       \\\<section id="accueil" class="site-section">
+
+&#x20;           \\\<div class="hero-content">
+
+&#x20;               \\\<div class="hero-text">
+
+&#x20;                   \\\<div class="hero-badge">
+&#x20;                       ✦ Ton assistant cadeau
+&#x20;                   \\\</div>
+
+&#x20;                   \\\<h1>
+&#x20;                       Trouve le\\\<br>
+&#x20;                       \\\<span>cadeau parfait.\\\</span>
+&#x20;                   \\\</h1>
+
+&#x20;                   \\\<p class="hero-subtitle">
+&#x20;                       Réponds à quelques questions et GiftFinder te propose
+&#x20;                       des cadeaux adaptés à la personne, à ton budget et à ses envies.
+&#x20;                   \\\</p>
+
+&#x20;                   \\\<div class="hero-buttons">
+
+&#x20;                       \\\<a href="#explore" class="hero-primary">
+&#x20;                           🎁 Trouver un cadeau
+&#x20;                       \\\</a>
+
+&#x20;                       \\\<a
+&#x20;                           href="#comment-ca-marche"
+&#x20;                           class="hero-secondary"
+&#x20;                       \\>
+&#x20;                           Découvrir comment ça marche
+&#x20;                       \\\</a>
+
+&#x20;                   \\\</div>
+
+&#x20;               \\\</div>
+
+&#x20;               \\\<div class="hero-gift-area">
+
+&#x20;                   \\\<div class="gift-scene">
+
+&#x20;                       \\\<span class="floating-star star-one">
+&#x20;                           ✦
+&#x20;                       \\\</span>
+
+&#x20;                       \\\<div class="gift-box">
+&#x20;                           🎁
+&#x20;                       \\\</div>
+
+&#x20;                       \\\<span class="floating-star star-two">
+&#x20;                           ✦
+&#x20;                       \\\</span>
+
+&#x20;                   \\\</div>
+
+&#x20;               \\\</div>
+
+&#x20;           \\\</div>
+
+&#x20;       \\\</section>
+
+&#x20;       \\\<!-- EXPLORER -->
+
+&#x20;       \\\<section id="explore" class="site-section">
+
+&#x20;           \\\<div class="section-container">
+
+&#x20;               \\\<div class="section-heading">
+
+&#x20;                   \\\<h2>
+&#x20;                       Explore des cadeaux pour toutes les envies.
+&#x20;                   \\\</h2>
+
+&#x20;                   \\\<p>
+&#x20;                       Choisis une catégorie ou décris directement
+&#x20;                       le cadeau que tu recherches.
+&#x20;                   \\\</p>
+
+&#x20;               \\\</div>
+
+&#x20;               \\\<div class="explore-search">
+
+&#x20;                   \\\<input
+&#x20;                       type="text"
+&#x20;                       id="giftSearchInput"
+&#x20;                       placeholder="Ex : cadeau pour un gamer à moins de 50 €..."
+&#x20;                   \\>
+
+&#x20;                   \\\<button
+&#x20;                       type="button"
+&#x20;                       id="giftSearchButton"
+&#x20;                   \\>
+&#x20;                       Rechercher
+&#x20;                   \\\</button>
+
+&#x20;               \\\</div>
+
+&#x20;               \\\<div class="category-grid">
+
+&#x20;                   \\\<button
+&#x20;                       type="button"
+&#x20;                       class="category-button"
+&#x20;                       data-open-questionnaire
+&#x20;                       data-category="gaming"
+&#x20;                   \\>
+&#x20;                       \\\<span class="category-icon">🎮\\\</span>
+&#x20;                       Gaming
+&#x20;                   \\\</button>
+
+&#x20;                   \\\<button
+&#x20;                       type="button"
+&#x20;                       class="category-button"
+&#x20;                       data-open-questionnaire
+&#x20;                       data-category="sneakers"
+&#x20;                   \\>
+&#x20;                       \\\<span class="category-icon">👟\\\</span>
+&#x20;                       Sneakers
+&#x20;                   \\\</button>
+
+&#x20;                   \\\<button
+&#x20;                       type="button"
+&#x20;                       class="category-button"
+&#x20;                       data-open-questionnaire
+&#x20;                       data-category="streetwear"
+&#x20;                   \\>
+&#x20;                       \\\<span class="category-icon">👕\\\</span>
+&#x20;                       Streetwear
+&#x20;                   \\\</button>
+
+&#x20;                   \\\<button
+&#x20;                       type="button"
+&#x20;                       class="category-button"
+&#x20;                       data-open-questionnaire
+&#x20;                       data-category="tech"
+&#x20;                   \\>
+&#x20;                       \\\<span class="category-icon">💻\\\</span>
+&#x20;                       Tech
+&#x20;                   \\\</button>
+
+&#x20;                   \\\<button
+&#x20;                       type="button"
+&#x20;                       class="category-button"
+&#x20;                       data-open-questionnaire
+&#x20;                       data-category="jewelry"
+&#x20;                   \\>
+&#x20;                       \\\<span class="category-icon">💎\\\</span>
+&#x20;                       Bijoux
+&#x20;                   \\\</button>
+
+&#x20;                   \\\<button
+&#x20;                       type="button"
+&#x20;                       class="category-button"
+&#x20;                       data-open-questionnaire
+&#x20;                       data-category="fashion"
+&#x20;                   \\>
+&#x20;                       \\\<span class="category-icon">👗\\\</span>
+&#x20;                       Mode
+&#x20;                   \\\</button>
+
+&#x20;                   \\\<button
+&#x20;                       type="button"
+&#x20;                       class="category-button"
+&#x20;                       data-open-questionnaire
+&#x20;                       data-category="sport"
+&#x20;                   \\>
+&#x20;                       \\\<span class="category-icon">⚽\\\</span>
+&#x20;                       Sport
+&#x20;                   \\\</button>
+
+&#x20;                   \\\<button
+&#x20;                       type="button"
+&#x20;                       class="category-button"
+&#x20;                       data-open-questionnaire
+&#x20;                       data-category="experience"
+&#x20;                   \\>
+&#x20;                       \\\<span class="category-icon">✨\\\</span>
+&#x20;                       Expérience
+&#x20;                   \\\</button>
+
+&#x20;                   \\\<button
+&#x20;                       type="button"
+&#x20;                       class="category-button"
+&#x20;                       data-open-questionnaire
+&#x20;                       data-category="stickers"
+&#x20;                   \\>
+&#x20;                       \\\<span class="category-icon">🏷️\\\</span>
+&#x20;                       Stickers
+&#x20;                   \\\</button>
+
+&#x20;               \\\</div>
+
+&#x20;           \\\</div>
+
+&#x20;       \\\</section>
+
+&#x20;       \\\<!-- COMMENT ÇA MARCHE -->
+
+&#x20;       \\\<section id="comment-ca-marche" class="site-section">
+
+&#x20;           \\\<div class="section-container">
+
+&#x20;               \\\<div class="section-heading">
+
+&#x20;                   \\\<h2>
+&#x20;                       Simple. Rapide. Personnalisé.
+&#x20;                   \\\</h2>
+
+&#x20;                   \\\<p>
+&#x20;                       Quelques questions suffisent pour comprendre
+&#x20;                       le type de cadeau que tu recherches.
+&#x20;                   \\\</p>
+
+&#x20;               \\\</div>
+
+&#x20;               \\\<div class="steps-grid">
+
+&#x20;                   \\\<article class="step-card">
+
+&#x20;                       \\\<div class="step-number">1\\\</div>
+
+&#x20;                       \\\<h3>
+&#x20;                           Pour qui tu cherches
+&#x20;                       \\\</h3>
+
+&#x20;                       \\\<p>
+&#x20;                           Ami, famille, partenaire, enfant,
+&#x20;                           collègue ou pour toi.
+&#x20;                       \\\</p>
+
+&#x20;                   \\\</article>
+
+&#x20;                   \\\<article class="step-card">
+
+&#x20;                       \\\<div class="step-number">2\\\</div>
+
+&#x20;                       \\\<h3>
+&#x20;                           Ton budget
+&#x20;                       \\\</h3>
+
+&#x20;                       \\\<p>
+&#x20;                           Indique combien tu souhaites dépenser
+&#x20;                           pour obtenir des idées adaptées.
+&#x20;                       \\\</p>
+
+&#x20;                   \\\</article>
+
+&#x20;                   \\\<article class="step-card">
+
+&#x20;                       \\\<div class="step-number">3\\\</div>
+
+&#x20;                       \\\<h3>
+&#x20;                           Ses centres d'intérêt
+&#x20;                       \\\</h3>
+
+&#x20;                       \\\<p>
+&#x20;                           Gaming, sport, mode, tech, bijoux,
+&#x20;                           expériences et bien plus.
+&#x20;                       \\\</p>
+
+&#x20;                   \\\</article>
+
+&#x20;               \\\</div>
+
+&#x20;               \\\<div class="how-questions">
+
+&#x20;                   \\\<h3>
+&#x20;                       GiftFinder peut prendre en compte :
+&#x20;                   \\\</h3>
+
+&#x20;                   \\\<div class="question-points">
+
+&#x20;                       \\\<span class="question-point">
+&#x20;                           👤 Destinataire
+&#x20;                       \\\</span>
+
+&#x20;                       \\\<span class="question-point">
+&#x20;                           💰 Budget
+&#x20;                       \\\</span>
+
+&#x20;                       \\\<span class="question-point">
+&#x20;                           🎮 Centre d'intérêt
+&#x20;                       \\\</span>
+
+&#x20;                       \\\<span class="question-point">
+&#x20;                           🎉 Occasion
+&#x20;                       \\\</span>
+
+&#x20;                       \\\<span class="question-point">
+&#x20;                           📍 Ville
+&#x20;                       \\\</span>
+
+&#x20;                       \\\<span class="question-point">
+&#x20;                           💭 Préférences
+&#x20;                       \\\</span>
+
+&#x20;                   \\\</div>
+
+&#x20;               \\\</div>
+
+&#x20;           \\\</div>
+
+&#x20;       \\\</section>
+
+&#x20;       \\\<!-- PREMIUM -->
+
+&#x20;       \\\<section id="premium" class="site-section">
+
+&#x20;           \\\<div class="section-container">
+
+&#x20;               \\\<div class="premium-box">
+
+&#x20;                   \\\<div>
+
+&#x20;                       \\\<span class="premium-badge">
+&#x20;                           ✨ GIFT FINDER PREMIUM
+&#x20;                       \\\</span>
+
+&#x20;                       \\\<h2>
+&#x20;                           Ne te limite plus à une recherche.
+&#x20;                       \\\</h2>
+
+&#x20;                       \\\<p>
+&#x20;                           Passe à Premium pour utiliser GiftFinder
+&#x20;                           sans limite et obtenir davantage de recommandations.
+&#x20;                       \\\</p>
+
+&#x20;                       \\\<ul class="premium-list">
+
+&#x20;                           \\\<li>✓ Recherches illimitées\\\</li>
+&#x20;                           \\\<li>✓ Plus de résultats\\\</li>
+&#x20;                           \\\<li>✓ Recommandations personnalisées\\\</li>
+&#x20;                           \\\<li>✓ Filtres avancés\\\</li>
+&#x20;                           \\\<li>✓ Recherche d'expériences locales\\\</li>
+
+&#x20;                       \\\</ul>
+
+&#x20;                       \\\<a
+&#x20;                           href="#"
+&#x20;                           class="premium-button"
+&#x20;                           id="demoPremiumButton"
+&#x20;                       \\>
+&#x20;                           Passer Premium — Démo
+&#x20;                       \\\</a>
+
+&#x20;                   \\\</div>
+
+&#x20;                   \\\<div class="premium-price">
+&#x20;                       3,99 €
+&#x20;                       \\\<small>/ mois\\\</small>
+&#x20;                   \\\</div>
+
+&#x20;               \\\</div>
+
+&#x20;           \\\</div>
+
+&#x20;       \\\</section>
+
+&#x20;       \\\<!-- BOUTIQUE -->
+
+&#x20;       \\\<section id="boutique" class="site-section">
+
+&#x20;           \\\<div class="section-container">
+
+&#x20;               \\\<div class="section-heading">
+
+&#x20;                   \\\<h2>
+&#x20;                       🛍️ Boutique
+&#x20;                   \\\</h2>
+
+&#x20;                   \\\<p>
+&#x20;                       Besoin de recherches supplémentaires ?
+&#x20;                       Choisis ton pack.
+&#x20;                   \\\</p>
+
+&#x20;               \\\</div>
+
+&#x20;               \\\<div class="shop-grid">
+
+&#x20;                   \\\<article class="shop-card">
+
+&#x20;                       \\\<div class="shop-icon">
+&#x20;                           🔎
+&#x20;                       \\\</div>
+
+&#x20;                       \\\<h3>
+&#x20;                           Pack 10 recherches
+&#x20;                       \\\</h3>
+
+&#x20;                       \\\<p>
+&#x20;                           Ajoute 10 recherches supplémentaires
+&#x20;                           à ton compte.
+&#x20;                       \\\</p>
+
+&#x20;                       \\\<strong class="pack-price">
+&#x20;                           4,99 €
+&#x20;                       \\\</strong>
+
+&#x20;                       \\\<button
+&#x20;                           type="button"
+&#x20;                           class="premium-button pack-button"
+&#x20;                           data-pack="10"
+&#x20;                       \\>
+&#x20;                           Acheter 10 recherches
+&#x20;                       \\\</button>
+
+&#x20;                   \\\</article>
+
+&#x20;                   \\\<article class="shop-card">
+
+&#x20;                       \\\<div class="shop-icon">
+&#x20;                           🚀
+&#x20;                       \\\</div>
+
+&#x20;                       \\\<h3>
+&#x20;                           Pack 30 recherches
+&#x20;                       \\\</h3>
+
+&#x20;                       \\\<p>
+&#x20;                           Ajoute 30 recherches supplémentaires
+&#x20;                           à ton compte.
+&#x20;                       \\\</p>
+
+&#x20;                       \\\<strong class="pack-price">
+&#x20;                           9,99 €
+&#x20;                       \\\</strong>
+
+&#x20;                       \\\<button
+&#x20;                           type="button"
+&#x20;                           class="premium-button pack-button"
+&#x20;                           data-pack="30"
+&#x20;                       \\>
+&#x20;                           Acheter 30 recherches
+&#x20;                       \\\</button>
+
+&#x20;                   \\\</article>
+
+&#x20;               \\\</div>
+
+&#x20;               \\\<div class="shop-info">
+&#x20;                   💡 Les packs ajoutent des recherches supplémentaires
+&#x20;                   à ton compte. Ils ne sont pas nécessaires si tu utilises Premium.
+&#x20;               \\\</div>
+
+&#x20;           \\\</div>
+
+&#x20;       \\\</section>
+
+&#x20;       \\\<!-- GUIDES -->
+
+&#x20;       \\\<section id="guides" class="site-section">
+
+&#x20;           \\\<div class="section-container">
+
+&#x20;               \\\<div class="section-heading">
+
+&#x20;                   \\\<h2>
+&#x20;                       Besoin d'inspiration ?
+&#x20;                   \\\</h2>
+
+&#x20;                   \\\<p>
+&#x20;                       Découvre des idées selon les personnes,
+&#x20;                       les budgets et les occasions.
+&#x20;                   \\\</p>
+
+&#x20;               \\\</div>
+
+&#x20;               \\\<div class="guides-grid">
+
+&#x20;                   \\\<a href="#explore" class="guide-card">
+&#x20;                       \\\<span>🎮\\\</span>
+&#x20;                       \\\<h3>20 idées pour un gamer\\\</h3>
+&#x20;                       \\\<p>
+&#x20;                           Des idées pour les passionnés de jeux vidéo.
+&#x20;                       \\\</p>
+&#x20;                   \\\</a>
+
+&#x20;                   \\\<a href="#explore" class="guide-card">
+&#x20;                       \\\<span>💸\\\</span>
+&#x20;                       \\\<h3>Cadeaux à moins de 20 €\\\</h3>
+&#x20;                       \\\<p>
+&#x20;                           Des cadeaux accessibles pour tous les budgets.
+&#x20;                       \\\</p>
+&#x20;                   \\\</a>
+
+&#x20;                   \\\<a href="#explore" class="guide-card">
+&#x20;                       \\\<span>❤️\\\</span>
+&#x20;                       \\\<h3>Cadeaux pour son meilleur ami\\\</h3>
+&#x20;                       \\\<p>
+&#x20;                           Des idées pour faire plaisir à ton meilleur ami.
+&#x20;                       \\\</p>
+&#x20;                   \\\</a>
+
+&#x20;                   \\\<a href="#explore" class="guide-card">
+&#x20;                       \\\<span>🎄\\\</span>
+&#x20;                       \\\<h3>Cadeaux de Noël\\\</h3>
+&#x20;                       \\\<p>
+&#x20;                           Des idées pour les fêtes.
+&#x20;                       \\\</p>
+&#x20;                   \\\</a>
+
+&#x20;                   \\\<a href="#explore" class="guide-card">
+&#x20;                       \\\<span>🎂\\\</span>
+&#x20;                       \\\<h3>Cadeaux d'anniversaire\\\</h3>
+&#x20;                       \\\<p>
+&#x20;                           Des idées pour marquer le coup.
+&#x20;                       \\\</p>
+&#x20;                   \\\</a>
+
+&#x20;                   \\\<a href="#explore" class="guide-card">
+&#x20;                       \\\<span>✨\\\</span>
+&#x20;                       \\\<h3>Cadeaux originaux\\\</h3>
+&#x20;                       \\\<p>
+&#x20;                           Pour trouver quelque chose de différent.
+&#x20;                       \\\</p>
+&#x20;                   \\\</a>
+
+&#x20;               \\\</div>
+
+&#x20;           \\\</div>
+
+&#x20;       \\\</section>
+
+&#x20;       \\\<!-- FAVORIS -->
+
+&#x20;       \\\<section id="favoris" class="site-section">
+
+&#x20;           \\\<div class="section-container">
+
+&#x20;               \\\<div class="section-heading">
+
+&#x20;                   \\\<h2>
+&#x20;                       Tes cadeaux favoris ❤️
+&#x20;                   \\\</h2>
+
+&#x20;                   \\\<p>
+&#x20;                       Retrouve ici les cadeaux que tu as sauvegardés.
+&#x20;                   \\\</p>
+
+&#x20;               \\\</div>
+
+&#x20;               \\\<div
+&#x20;                   class="favorites-empty"
+&#x20;                   id="favoritesPreview"
+&#x20;               \\>
+
+&#x20;                   \\\<div class="favorites-heart">
+&#x20;                       ❤️
+&#x20;                   \\\</div>
+
+&#x20;                   \\\<h3>
+&#x20;                       Aucun cadeau favori pour le moment
+&#x20;                   \\\</h3>
+
+&#x20;                   \\\<p>
+&#x20;                       Lorsque tu trouveras une idée qui te plaît,
+&#x20;                       appuie sur le cœur pour la sauvegarder.
+&#x20;                   \\\</p>
+
+&#x20;               \\\</div>
+
+&#x20;           \\\</div>
+
+&#x20;       \\\</section>
+
+&#x20;       \\\<!-- COMPTE -->
+
+&#x20;       \\\<section id="compte" class="site-section">
+
+&#x20;           \\\<div class="section-container">
+
+&#x20;               \\\<div class="section-heading">
+
+&#x20;                   \\\<h2>
+&#x20;                       Mon compte
+&#x20;                   \\\</h2>
+
+&#x20;                   \\\<p>
+&#x20;                       Gère ton utilisation de GiftFinder.
+&#x20;                   \\\</p>
+
+&#x20;               \\\</div>
+
+&#x20;               \\\<div class="search-counter-card">
+
+&#x20;                   \\\<div class="search-counter-icon">
+&#x20;                       🔎
+&#x20;                   \\\</div>
+
+&#x20;                   \\\<h3>
+&#x20;                       Tes recherches
+&#x20;                   \\\</h3>
+
+&#x20;                   \\\<div
+&#x20;                       class="search-counter-number"
+&#x20;                       id="searchesRemaining"
+&#x20;                   \\>
+&#x20;                       1
+&#x20;                   \\\</div>
+
+&#x20;                   \\\<div
+&#x20;                       class="search-counter-label"
+&#x20;                       id="searchesStatus"
+&#x20;                   \\>
+&#x20;                       recherche restante
+&#x20;                   \\\</div>
+
+&#x20;                   \\\<p
+&#x20;                       class="search-counter-info"
+&#x20;                       id="searchesRenewal"
+&#x20;                   \\>
+&#x20;                       Recherche gratuite disponible,
+&#x20;                       sans cumul.
+&#x20;                   \\\</p>
+
+&#x20;               \\\</div>
+
+&#x20;               \\\<div class="account-grid">
+
+&#x20;                   \\\<div class="account-card">
+
+&#x20;                       \\\<span>❤️\\\</span>
+
+&#x20;                       \\\<h3>
+&#x20;                           Favoris
+&#x20;                       \\\</h3>
+
+&#x20;                       \\\<p>
+&#x20;                           Retrouve les cadeaux que tu as sauvegardés.
+&#x20;                       \\\</p>
+
+&#x20;                   \\\</div>
+
+&#x20;                   \\\<div class="account-card">
+
+&#x20;                       \\\<span>✨\\\</span>
+
+&#x20;                       \\\<h3>
+&#x20;                           Premium
+&#x20;                       \\\</h3>
+
+&#x20;                       \\\<p id="premiumStatus">
+&#x20;                           Version gratuite — 1 recherche disponible.
+&#x20;                       \\\</p>
+
+&#x20;                   \\\</div>
+
+&#x20;                   \\\<div class="account-card">
+
+&#x20;                       \\\<span>🛍️\\\</span>
+
+&#x20;                       \\\<h3>
+&#x20;                           Packs
+&#x20;                       \\\</h3>
+
+&#x20;                       \\\<p>
+&#x20;                           Achète des recherches supplémentaires
+&#x20;                           depuis la Boutique.
+&#x20;                       \\\</p>
+
+&#x20;                   \\\</div>
+
+&#x20;               \\\</div>
+
+&#x20;           \\\</div>
+
+&#x20;       \\\</section>
+
+&#x20;       \\\<!-- FAQ -->
+
+&#x20;       \\\<section id="faq" class="site-section">
+
+&#x20;           \\\<div class="section-container">
+
+&#x20;               \\\<div class="section-heading">
+
+&#x20;                   \\\<h2>
+&#x20;                       Questions fréquentes
+&#x20;                   \\\</h2>
+
+&#x20;                   \\\<p>
+&#x20;                       Les réponses aux questions les plus courantes.
+&#x20;                   \\\</p>
+
+&#x20;               \\\</div>
+
+&#x20;               \\\<div class="faq-list">
+
+&#x20;                   \\\<details class="faq-item">
+
+&#x20;                       \\\<summary>
+&#x20;                           Comment GiftFinder choisit-il les cadeaux ?
+&#x20;                       \\\</summary>
+
+&#x20;                       \\\<p>
+&#x20;                           GiftFinder utilise les réponses données dans
+&#x20;                           le questionnaire pour sélectionner les idées
+&#x20;                           correspondant à ta recherche.
+&#x20;                       \\\</p>
+
+&#x20;                   \\\</details>
+
+&#x20;                   \\\<details class="faq-item">
+
+&#x20;                       \\\<summary>
+&#x20;                           Les produits sont-ils déjà réels ?
+&#x20;                       \\\</summary>
+
+&#x20;                       \\\<p>
+&#x20;                           Pour le moment, GiftFinder fonctionne avec
+&#x20;                           des données de démonstration. Les vrais produits
+&#x20;                           seront connectés avec une API plus tard.
+&#x20;                       \\\</p>
+
+&#x20;                   \\\</details>
+
+&#x20;                   \\\<details class="faq-item">
+
+&#x20;                       \\\<summary>
+&#x20;                           Combien de recherches puis-je faire gratuitement ?
+&#x20;                       \\\</summary>
+
+&#x20;                       \\\<p>
+&#x20;                           La version gratuite donne accès à une recherche
+&#x20;                           disponible à la fois. Elle ne se cumule pas :
+&#x20;                           si ta recherche gratuite n'est pas utilisée,
+&#x20;                           tu restes à une recherche disponible.
+&#x20;                       \\\</p>
+
+&#x20;                   \\\</details>
+
+&#x20;                   \\\<details class="faq-item">
+
+&#x20;                       \\\<summary>
+&#x20;                           Que se passe-t-il quand j'utilise ma recherche ?
+&#x20;                       \\\</summary>
+
+&#x20;                       \\\<p>
+&#x20;                           Ta recherche gratuite passe à zéro.
+&#x20;                           Tu peux ensuite acheter un pack de recherches
+&#x20;                           ou passer à Premium.
+&#x20;                       \\\</p>
+
+&#x20;                   \\\</details>
+
+&#x20;                   \\\<details class="faq-item">
+
+&#x20;                       \\\<summary>
+&#x20;                           Premium est-il illimité ?
+&#x20;                       \\\</summary>
+
+&#x20;                       \\\<p>
+&#x20;                           Oui. Premium donne accès à des recherches
+&#x20;                           illimitées pendant la période d'abonnement.
+&#x20;                       \\\</p>
+
+&#x20;                   \\\</details>
+
+&#x20;                   \\\<details class="faq-item">
+
+&#x20;                       \\\<summary>
+&#x20;                           Les recherches des packs sont-elles cumulables ?
+&#x20;                       \\\</summary>
+
+&#x20;                       \\\<p>
+&#x20;                           Oui. Les recherches achetées avec les packs
+&#x20;                           peuvent être ajoutées au compteur de ton compte.
+&#x20;                       \\\</p>
+
+&#x20;                   \\\</details>
+
+&#x20;                   \\\<details class="faq-item">
+
+&#x20;                       \\\<summary>
+&#x20;                           Mes favoris sont-ils conservés ?
+&#x20;                       \\\</summary>
+
+&#x20;                       \\\<p>
+&#x20;                           Oui, ils sont actuellement conservés dans
+&#x20;                           le navigateur grâce au stockage local.
+&#x20;                       \\\</p>
+
+&#x20;                   \\\</details>
+
+&#x20;                   \\\<details class="faq-item">
+
+&#x20;                       \\\<summary>
+&#x20;                           Le paiement fonctionne-t-il déjà ?
+&#x20;                       \\\</summary>
+
+&#x20;                       \\\<p>
+&#x20;                           Non. Les achats sont actuellement prévus pour
+&#x20;                           fonctionner en mode démonstration. Le vrai
+&#x20;                           paiement sera connecté ultérieurement.
+&#x20;                       \\\</p>
+
+&#x20;                   \\\</details>
+
+&#x20;               \\\</div>
+
+&#x20;           \\\</div>
+
+&#x20;       \\\</section>
+
+&#x20;       \\\<!-- =========================
+&#x20;            RÉSULTATS
+&#x20;       \\========================= -->
+
+&#x20;       \\\<section id="giftResults">
+
+&#x20;           \\\<div class="results-container">
+
+&#x20;               \\\<div class="results-heading">
+
+&#x20;                   \\\<h2>
+&#x20;                       🎁 Cadeaux recommandés
+&#x20;                   \\\</h2>
+
+&#x20;                   \\\<p>
+&#x20;                       Voici les cadeaux correspondant à ta recherche.
+&#x20;                   \\\</p>
+
+&#x20;               \\\</div>
+
+&#x20;               \\\<div
+&#x20;                   id="resultsGrid"
+&#x20;                   class="results-grid"
+&#x20;               \\>
+&#x20;               \\\</div>
+
+&#x20;           \\\</div>
+
+&#x20;       \\\</section>
+
+&#x20;   \\\</main>
+
+&#x20;   \\\<!-- =========================
+&#x20;        FOOTER
+&#x20;   \\========================= -->
+
+&#x20;   \\\<footer>
+&#x20;       GiftFinder — Trouve le cadeau parfait ✦
+&#x20;   \\\</footer>
+
+&#x20;   \\\<!-- =========================
+&#x20;        QUESTIONNAIRE
+&#x20;   \\========================= -->
+
+&#x20;   \\\<div
+&#x20;       class="questionnaire-modal"
+&#x20;       id="questionnaireModal"
+&#x20;       aria-hidden="true"
+&#x20;   \\>
+
+&#x20;       \\\<div class="questionnaire-overlay">\\\</div>
+
+&#x20;       \\\<div class="questionnaire-box">
+
+&#x20;           \\\<button
+&#x20;               type="button"
+&#x20;               class="questionnaire-close"
+&#x20;               data-close-questionnaire
+&#x20;               aria-label="Fermer"
+&#x20;           \\>
+&#x20;               ×
+&#x20;           \\\</button>
+
+&#x20;           \\\<div class="questionnaire-header">
+
+&#x20;               \\\<div class="questionnaire-progress">
+
+&#x20;                   \\\<div
+&#x20;                       id="progressBar"
+&#x20;                       class="questionnaire-progress-bar"
+&#x20;                   \\>\\\</div>
+
+&#x20;               \\\</div>
+
+&#x20;               \\\<p id="progressText">
+&#x20;                   Question 1
+&#x20;               \\\</p>
+
+&#x20;           \\\</div>
+
+&#x20;           \\\<div
+&#x20;               id="questionContainer"
+&#x20;               class="question-container"
+&#x20;           \\>\\\</div>
+
+&#x20;           \\\<div class="questionnaire-actions">
+
+&#x20;               \\\<button
+&#x20;                   type="button"
+&#x20;                   id="previousQuestion"
+&#x20;                   class="questionnaire-secondary"
+&#x20;               \\>
+&#x20;                   ← Retour
+&#x20;               \\\</button>
+
+&#x20;               \\\<button
+&#x20;                   type="button"
+&#x20;                   id="nextQuestion"
+&#x20;                   class="questionnaire-primary"
+&#x20;               \\>
+&#x20;                   Continuer →
+&#x20;               \\\</button>
+
+&#x20;           \\\</div>
+
+&#x20;       \\\</div>
+
+&#x20;   \\\</div>
+
+&#x20;   \\\<!-- =========================
+&#x20;        ÉCRAN DE CHARGEMENT
+&#x20;   \\========================= -->
+
+&#x20;   \\\<div
+&#x20;       id="giftLoading"
+&#x20;       class="gift-loading"
+&#x20;       aria-hidden="true"
+&#x20;   \\>
+
+&#x20;       \\\<div class="gift-loading-box">
+
+&#x20;           \\\<div class="gift-loading-icon">
+&#x20;               🎁
+&#x20;           \\\</div>
+
+&#x20;           \\\<h2>
+&#x20;               GiftFinder cherche les meilleurs cadeaux…
+&#x20;           \\\</h2>
+
+&#x20;           \\\<p>
+&#x20;               Analyse de tes réponses en cours.
+&#x20;           \\\</p>
+
+&#x20;           \\\<div class="loading-dots">
+&#x20;               \\\<span>\\\</span>
+&#x20;               \\\<span>\\\</span>
+&#x20;               \\\<span>\\\</span>
+&#x20;           \\\</div>
+
+&#x20;       \\\</div>
+
+&#x20;   \\\</div>
+
+&#x20;   \\\<!-- =========================
+&#x20;        SCRIPTS
+&#x20;   \\========================== -->
+
+&#x20;   \\\<script src="data.js">\\\</script>
+&#x20;   \\\<script src="app.js">\\\</script>
+
+&#x20;   \\\<script>
+&#x20;       document.addEventListener("DOMContentLoaded", function () {
+
+&#x20;           /\\\* =========================
+&#x20;              MENU MOBILE
+&#x20;           \\========================= \\\*/
+
+&#x20;           const mobileMenuButton =
+&#x20;               document.getElementById("mobileMenuButton");
+
+&#x20;           const mainNav =
+&#x20;               document.getElementById("mainNav");
+
+&#x20;           if (mobileMenuButton && mainNav) {
+
+&#x20;               mobileMenuButton.addEventListener("click", function () {
+&#x20;                   mainNav.classList.toggle("open");
+&#x20;               });
+
+&#x20;               mainNav
+&#x20;                   .querySelectorAll("a")
+&#x20;                   .forEach(function (link) {
+
+&#x20;                       link.addEventListener("click", function () {
+&#x20;                           mainNav.classList.remove("open");
+&#x20;                       });
+
+&#x20;                   });
+&#x20;           }
+
+&#x20;           /\\\* =========================
+&#x20;              PREMIUM DÉMO
+&#x20;           \\========================= \\\*/
+
+&#x20;           const demoPremiumButton =
+&#x20;               document.getElementById("demoPremiumButton");
+
+&#x20;           if (demoPremiumButton) {
+
+&#x20;               demoPremiumButton.addEventListener(
+&#x20;                   "click",
+&#x20;                   function (event) {
+
+&#x20;                       event.preventDefault();
+
+&#x20;                       if (
+&#x20;                           typeof window\\.activatePremiumDemo ===
+&#x20;                           "function"
+&#x20;                       ) {
+
+&#x20;                           window\\.activatePremiumDemo();
+
+&#x20;                       } else {
+
+&#x20;                           alert(
+&#x20;                               "Premium est actuellement en mode démonstration."
+&#x20;                           );
+
+&#x20;                       }
+
+&#x20;                   }
+&#x20;               );
+
+&#x20;           }
+
+&#x20;       });
+&#x20;   \\\</script>
+
+\\\</body>
+
+\\\</html>
