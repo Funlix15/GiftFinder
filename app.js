@@ -1,13 +1,5 @@
 "use strict";
 
-/* =========================================================
-   GIFT FINDER — APP.JS
-========================================================= */
-
-/* =========================================================
-   ÉTAT
-========================================================= */
-
 const state = {
     category: "",
     answers: {
@@ -23,34 +15,27 @@ const state = {
     },
     questions: [],
     currentQuestion: 0,
-    questionHistory: [],
     recommendations: []
 };
 
 const FAVORITES_KEY = "giftfinder_favorites";
 const USER_ID_KEY = "giftfinder_user_id";
 
-/* =========================================================
-   IDENTIFIANT UTILISATEUR
-========================================================= */
-
 function getGiftFinderUserId() {
-    let userId = localStorage.getItem(USER_ID_KEY);
+    let id = localStorage.getItem(USER_ID_KEY);
 
-    if (!userId) {
-        if (window.crypto && crypto.randomUUID) {
-            userId = crypto.randomUUID();
-        } else {
-            userId =
-                "gf_" +
-                Math.random().toString(36).slice(2) +
-                Date.now().toString(36);
-        }
+    if (!id) {
+        id =
+            window.crypto && crypto.randomUUID
+                ? crypto.randomUUID()
+                : "gf_" +
+                  Math.random().toString(36).slice(2) +
+                  Date.now().toString(36);
 
-        localStorage.setItem(USER_ID_KEY, userId);
+        localStorage.setItem(USER_ID_KEY, id);
     }
 
-    return userId;
+    return id;
 }
 
 function apiHeaders() {
@@ -60,10 +45,6 @@ function apiHeaders() {
     };
 }
 
-/* =========================================================
-   UTILITAIRES
-========================================================= */
-
 function escapeHTML(value) {
     return String(value ?? "")
         .replace(/&/g, "&amp;")
@@ -72,6 +53,11 @@ function escapeHTML(value) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
+
+
+/* =========================================================
+   FAVORIS
+========================================================= */
 
 function getFavorites() {
     try {
@@ -83,665 +69,686 @@ function getFavorites() {
     }
 }
 
-function saveFavorites(favorites) {
+function saveFavorites(items) {
     localStorage.setItem(
         FAVORITES_KEY,
-        JSON.stringify(favorites)
+        JSON.stringify(items)
+    );
+
+    updateFavoritesCount();
+    renderFavoritesPreview();
+}
+
+function isFavorite(product) {
+    return getFavorites().some(
+        item =>
+            String(item.id || item.name) ===
+            String(product.id || product.name)
     );
 }
 
-function isFavorite(item) {
-    const favorites = getFavorites();
+function toggleGiftFinderFavorite(product) {
+    let favorites = getFavorites();
 
-    return favorites.some(
-        favorite =>
-            favorite.name === item.name &&
-            favorite.link === item.link
-    );
-}
+    const key = String(product.id || product.name);
 
-function toggleFavorite(index) {
-    const item = state.recommendations[index];
-
-    if (!item) return;
-
-    const favorites = getFavorites();
-
-    const existingIndex = favorites.findIndex(
-        favorite =>
-            favorite.name === item.name &&
-            favorite.link === item.link
+    const index = favorites.findIndex(
+        item =>
+            String(item.id || item.name) === key
     );
 
-    if (existingIndex >= 0) {
-        favorites.splice(existingIndex, 1);
+    if (index >= 0) {
+        favorites.splice(index, 1);
     } else {
-        favorites.push(item);
+        favorites.push(product);
     }
 
     saveFavorites(favorites);
 
-    renderRecommendations(state.recommendations);
-}
-
-/* =========================================================
-   ÉLÉMENTS DOM
-========================================================= */
-
-function getModal() {
-    return document.getElementById("giftFinderModal");
-}
-
-function getQuestionContainer() {
-    return (
-        document.getElementById("questionContainer") ||
-        document.getElementById("questionnaireContent") ||
-        document.getElementById("questionsContainer")
+    renderRecommendations(
+        state.recommendations
     );
 }
 
+function updateFavoritesCount() {
+    const count = getFavorites().length;
+
+    document
+        .querySelectorAll("#favoriteCount,#favoritesCount")
+        .forEach(element => {
+            element.textContent = count;
+        });
+}
+
+function removeGiftFinderFavorite(product) {
+    const key =
+        String(product.id || product.name);
+
+    const favorites =
+        getFavorites().filter(
+            item =>
+                String(item.id || item.name) !== key
+        );
+
+    saveFavorites(favorites);
+}
+
+function renderFavoritesPreview() {
+    const container =
+        document.getElementById(
+            "favoritesPreview"
+        );
+
+    if (!container) return;
+
+    const favorites =
+        getFavorites();
+
+    if (!favorites.length) {
+        container.innerHTML = `
+            <div style="
+                text-align:center;
+                padding:50px 20px;
+                border:1px solid #e7e7ee;
+                border-radius:22px;
+                background:white;
+            ">
+                <div style="font-size:48px;">♡</div>
+                <h3>Aucun favori pour le moment</h3>
+                <p style="color:#6f7180;margin-top:8px;">
+                    Ajoute des cadeaux à tes favoris pour les retrouver ici.
+                </p>
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="results-grid">
+            ${favorites.map(product => `
+                <article class="result-card">
+
+                    ${
+                        product.image
+                            ? `
+                                <img
+                                    src="${escapeHTML(product.image)}"
+                                    alt="${escapeHTML(product.name || "Cadeau")}"
+                                    loading="lazy"
+                                >
+                            `
+                            : `
+                                <div style="
+                                    width:150px;
+                                    height:150px;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;
+                                    background:#f5f5f8;
+                                    border-radius:13px;
+                                    font-size:45px;
+                                ">
+                                    🎁
+                                </div>
+                            `
+                    }
+
+                    <div class="result-content">
+
+                        <h3>
+                            ${escapeHTML(
+                                product.name || "Cadeau"
+                            )}
+                        </h3>
+
+                        ${
+                            product.price
+                                ? `
+                                    <div class="result-price">
+                                        ${escapeHTML(product.price)}
+                                    </div>
+                                `
+                                : ""
+                        }
+
+                        <button
+                            type="button"
+                            class="favorite-result-button"
+                            data-remove-favorite
+                            data-favorite-id="${escapeHTML(
+                                String(product.id || product.name)
+                            )}"
+                        >
+                            Retirer
+                        </button>
+
+                        ${
+                            product.url
+                                ? `
+                                    <a
+                                        class="amazon-link"
+                                        href="${escapeHTML(product.url)}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Voir le produit
+                                    </a>
+                                `
+                                : ""
+                        }
+
+                    </div>
+                </article>
+            `).join("")}
+        </div>
+    `;
+
+    container
+        .querySelectorAll("[data-remove-favorite]")
+        .forEach(button => {
+            button.addEventListener(
+                "click",
+                () => {
+                    const id =
+                        button.dataset.favoriteId;
+
+                    const updated =
+                        getFavorites().filter(
+                            item =>
+                                String(
+                                    item.id ||
+                                    item.name
+                                ) !== id
+                        );
+
+                    saveFavorites(updated);
+                }
+            );
+        });
+}
+
+
 /* =========================================================
-   OUVERTURE QUESTIONNAIRE
+   MODAL
+========================================================= */
+
+function getModal() {
+    return (
+        document.getElementById(
+            "giftFinderModal"
+        ) ||
+        document.getElementById(
+            "questionnaireModal"
+        )
+    );
+}
+
+function getQuestionContainer() {
+    return document.getElementById(
+        "questionContainer"
+    );
+}
+
+
+/* =========================================================
+   QUESTIONS
+========================================================= */
+
+function buildQuestions(category) {
+
+    const questions = [
+
+        {
+            key: "recipient",
+            title: "Pour qui cherches-tu un cadeau ?",
+            subtitle: "Choisis la personne à qui tu veux faire plaisir.",
+            type: "options",
+            options: [
+                ["👨","Ami","Un ami"],
+                ["👩","Amie","Une amie"],
+                ["❤️","Partenaire","Ton/ta partenaire"],
+                ["👨‍👩‍👧","Famille","Un membre de ta famille"],
+                ["🎓","Collègue","Un collègue"],
+                ["🎁","Autre","Une autre personne"]
+            ]
+        },
+
+        {
+            key: "budget",
+            title: "Quel est ton budget ?",
+            subtitle: "Choisis la tranche qui correspond à ton budget.",
+            type: "options",
+            options: [
+                ["💶","Moins de 20 €","Petit budget"],
+                ["💵","20 – 50 €","Budget moyen"],
+                ["💳","50 – 100 €","Budget confortable"],
+                ["💎","100 € et plus","Budget premium"]
+            ]
+        },
+
+        {
+            key: "occasion",
+            title: "Pour quelle occasion ?",
+            subtitle: "Le contexte permet d'améliorer les recommandations.",
+            type: "options",
+            options: [
+                ["🎂","Anniversaire",""],
+                ["🎄","Noël",""],
+                ["❤️","Saint-Valentin",""],
+                ["🎓","Diplôme",""],
+                ["🎉","Fête",""],
+                ["✨","Sans occasion",""]
+            ]
+        },
+
+        {
+            key: "preferences",
+            title: "Quels sont ses goûts ?",
+            subtitle: "Décris librement ses passions, goûts et envies.",
+            type: "text",
+            placeholder:
+                "Ex : gaming, sport, musique, mode, objets originaux..."
+        }
+    ];
+
+
+    if (category === "gaming") {
+
+        questions.splice(2, 0, {
+            key: "platform",
+            title: "Sur quelle plateforme joue-t-il/elle ?",
+            subtitle: "Choisis sa plateforme principale.",
+            type: "options",
+            options: [
+                ["💻","PC",""],
+                ["🎮","PlayStation",""],
+                ["🟢","Xbox",""],
+                ["🔴","Nintendo",""],
+                ["📱","Mobile",""],
+                ["🎮","Peu importe",""]
+            ]
+        });
+
+        questions.splice(3, 0, {
+            key: "game",
+            title: "Quel type de jeu aime-t-il/elle ?",
+            subtitle: "Tu peux sélectionner plusieurs réponses.",
+            type: "options",
+            multiple: true,
+            options: [
+                ["⚔️","Action",""],
+                ["🏎️","Course",""],
+                ["⚽","Sport",""],
+                ["🧱","Minecraft",""],
+                ["🔫","FPS",""],
+                ["🎮","Autre",""]
+            ]
+        });
+    }
+
+
+    if (category === "experience") {
+
+        questions.splice(2, 0, {
+            key: "city",
+            title: "Dans quelle ville ?",
+            subtitle: "Pour trouver des expériences autour de cette ville.",
+            type: "text",
+            placeholder: "Ex : Paris, Lyon, Mulhouse..."
+        });
+    }
+
+
+    return questions;
+}
+
+
+/* =========================================================
+   QUESTIONNAIRE
 ========================================================= */
 
 function openQuestionnaire(category = "") {
-    state.category = category || "";
-    state.answers.category = category || "";
+
+    state.category = category;
+    state.answers.category = category;
+    state.questions = buildQuestions(category);
     state.currentQuestion = 0;
-    state.questionHistory = [];
 
     const modal = getModal();
 
-    if (modal) {
-        modal.classList.add("active");
-        modal.style.display = "flex";
+    if (!modal) {
+        alert("Le questionnaire est introuvable.");
+        return;
     }
 
-    state.questions = getQuestions();
+    modal.classList.add("open");
+    modal.style.display = "flex";
 
     renderQuestion();
 }
 
 function closeQuestionnaire() {
+
     const modal = getModal();
 
-    if (modal) {
-        modal.classList.remove("active");
-        modal.style.display = "none";
-    }
+    if (!modal) return;
+
+    modal.classList.remove("open");
+    modal.style.display = "none";
 }
-
-/* =========================================================
-   QUESTIONS DE BASE
-========================================================= */
-
-function getQuestions() {
-    const questions = [
-        {
-            id: "recipient",
-            text: "À qui veux-tu offrir ce cadeau ?",
-            type: "choice",
-            options: [
-                {
-                    value: "ami",
-                    label: "Un ami / une amie"
-                },
-                {
-                    value: "famille",
-                    label: "Un membre de ma famille"
-                },
-                {
-                    value: "partenaire",
-                    label: "Mon/ma partenaire"
-                },
-                {
-                    value: "parent",
-                    label: "Mon père ou ma mère"
-                },
-                {
-                    value: "enfant",
-                    label: "Un enfant"
-                },
-                {
-                    value: "autre",
-                    label: "Autre"
-                }
-            ]
-        },
-        {
-            id: "budget",
-            text: "Quel est ton budget ?",
-            type: "choice",
-            options: [
-                {
-                    value: "moins_20",
-                    label: "Moins de 20 €"
-                },
-                {
-                    value: "20_50",
-                    label: "20 – 50 €"
-                },
-                {
-                    value: "50_100",
-                    label: "50 – 100 €"
-                },
-                {
-                    value: "100_200",
-                    label: "100 – 200 €"
-                },
-                {
-                    value: "plus_200",
-                    label: "Plus de 200 €"
-                }
-            ]
-        }
-    ];
-
-    const categories =
-        window.giftCategories ||
-        [
-            {
-                id: "gaming",
-                name: "Gaming / jeux vidéo"
-            },
-            {
-                id: "stickers",
-                name: "Stickers"
-            },
-            {
-                id: "tech",
-                name: "Électronique / Tech"
-            },
-            {
-                id: "fashion",
-                name: "Mode"
-            },
-            {
-                id: "sneakers",
-                name: "Sneakers"
-            },
-            {
-                id: "streetwear",
-                name: "Streetwear"
-            },
-            {
-                id: "jewelry",
-                name: "Bijoux"
-            },
-            {
-                id: "sport",
-                name: "Sport"
-            },
-            {
-                id: "food",
-                name: "Nourriture"
-            },
-            {
-                id: "drinks",
-                name: "Boissons"
-            },
-            {
-                id: "creative",
-                name: "Créatif"
-            },
-            {
-                id: "books",
-                name: "Livres"
-            },
-            {
-                id: "home",
-                name: "Maison"
-            },
-            {
-                id: "beauty",
-                name: "Beauté"
-            },
-            {
-                id: "music",
-                name: "Musique"
-            },
-            {
-                id: "personalized",
-                name: "Personnalisé"
-            },
-            {
-                id: "travel",
-                name: "Voyage"
-            },
-            {
-                id: "experience",
-                name: "Expérience / activité"
-            }
-        ];
-
-    questions.push({
-        id: "category",
-        text: "Quel type de cadeau recherches-tu ?",
-        type: "choice",
-        options: categories.map(category => ({
-            value: category.id || category.name,
-            label: category.name || category.label
-        }))
-    });
-
-    const category =
-        state.category ||
-        state.answers.category;
-
-    if (category === "gaming") {
-        questions.push({
-            id: "platform",
-            text: "Sur quelle plateforme joue cette personne ?",
-            type: "choice",
-            options: [
-                {
-                    value: "pc",
-                    label: "PC"
-                },
-                {
-                    value: "playstation",
-                    label: "PlayStation"
-                },
-                {
-                    value: "xbox",
-                    label: "Xbox"
-                },
-                {
-                    value: "nintendo",
-                    label: "Nintendo"
-                },
-                {
-                    value: "mobile",
-                    label: "Mobile"
-                },
-                {
-                    value: "peu_importe",
-                    label: "Peu importe"
-                }
-            ]
-        });
-
-        questions.push({
-            id: "game",
-            text: "Quels jeux aime cette personne ?",
-            type: "text",
-            placeholder:
-                "Exemple : Fortnite, Minecraft, EA FC..."
-        });
-    }
-
-    if (
-        category === "experience" ||
-        category === "travel" ||
-        category === "activity" ||
-        category === "place"
-    ) {
-        questions.push({
-            id: "city",
-            text: "Dans quelle ville doit se trouver l'expérience ?",
-            type: "text",
-            placeholder: "Exemple : Paris"
-        });
-    }
-
-    questions.push({
-        id: "occasion",
-        text: "Pour quelle occasion ?",
-        type: "choice",
-        options: [
-            {
-                value: "anniversaire",
-                label: "Anniversaire"
-            },
-            {
-                value: "noel",
-                label: "Noël"
-            },
-            {
-                value: "saint_valentin",
-                label: "Saint-Valentin"
-            },
-            {
-                value: "fete",
-                label: "Fête"
-            },
-            {
-                value: "remerciement",
-                label: "Remerciement"
-            },
-            {
-                value: "autre",
-                label: "Autre"
-            }
-        ]
-    });
-
-    questions.push({
-        id: "preferences",
-        text: "Quels sont ses goûts, passions ou préférences ?",
-        type: "textarea",
-        placeholder:
-            "Exemple : aime le sport, le football, les voitures, le noir, les objets originaux..."
-    });
-
-    return questions;
-}
-
-/* =========================================================
-   AFFICHAGE QUESTION
-========================================================= */
 
 function renderQuestion() {
-    const container = getQuestionContainer();
 
-    if (!container) {
-        console.error(
-            "❌ Conteneur du questionnaire introuvable."
-        );
-        return;
-    }
+    const container =
+        getQuestionContainer();
 
-    if (
-        state.currentQuestion >=
-        state.questions.length
-    ) {
-        finishQuestionnaire();
-        return;
-    }
+    if (!container) return;
 
     const question =
         state.questions[
             state.currentQuestion
         ];
 
-    let html = `
-        <div class="question-step">
-            <div class="question-progress">
-                Question ${state.currentQuestion + 1}
-                sur ${state.questions.length}
-            </div>
+    if (!question) return;
 
-            <h2>
-                ${escapeHTML(question.text)}
-            </h2>
+    const current =
+        state.currentQuestion + 1;
+
+    const total =
+        state.questions.length;
+
+    const progress =
+        document.getElementById(
+            "progressBar"
+        );
+
+    const progressText =
+        document.getElementById(
+            "progressText"
+        );
+
+    if (progress) {
+        progress.style.width =
+            `${current / total * 100}%`;
+    }
+
+    if (progressText) {
+        progressText.textContent =
+            `Question ${current} sur ${total}`;
+    }
+
+
+    let html = `
+        <div class="question-title">
+            ${escapeHTML(question.title)}
+        </div>
+
+        <div class="question-subtitle">
+            ${escapeHTML(question.subtitle || "")}
+        </div>
     `;
 
-    if (question.type === "choice") {
-        html += `
-            <div class="question-options">
-        `;
 
-        question.options.forEach(option => {
-            const currentValue =
-                state.answers[question.id];
+    if (question.type === "options") {
 
-            const selected =
-                Array.isArray(currentValue)
-                    ? currentValue.includes(option.value)
-                    : currentValue === option.value;
-
-            html += `
-                <button
-                    type="button"
-                    class="question-option ${
-                        selected ? "selected" : ""
-                    }"
-                    data-question-id="${escapeHTML(
-                        question.id
-                    )}"
-                    data-value="${escapeHTML(
-                        option.value
-                    )}"
-                >
-                    ${escapeHTML(option.label)}
-                </button>
-            `;
-        });
+        const selectedValue =
+            state.answers[
+                question.key
+            ];
 
         html += `
+            <div class="option-grid">
+
+                ${question.options.map(
+                    option => {
+
+                        const selected =
+                            question.multiple
+                                ? Array.isArray(
+                                    selectedValue
+                                  ) &&
+                                  selectedValue.includes(
+                                      option[1]
+                                  )
+                                : selectedValue ===
+                                  option[1];
+
+                        return `
+                            <button
+                                type="button"
+                                class="option ${selected ? "selected" : ""}"
+                                data-option-value="${escapeHTML(option[1])}"
+                            >
+
+                                <span class="option-icon">
+                                    ${option[0]}
+                                </span>
+
+                                <span class="option-content">
+
+                                    <strong>
+                                        ${escapeHTML(option[1])}
+                                    </strong>
+
+                                    <small>
+                                        ${escapeHTML(option[2] || "")}
+                                    </small>
+
+                                </span>
+
+                            </button>
+                        `;
+                    }
+                ).join("")}
+
             </div>
         `;
     }
 
+
     if (question.type === "text") {
+
         html += `
             <input
-                id="questionInput"
-                class="question-input"
+                id="questionTextInput"
+                class="text-input"
                 type="text"
+                value="${escapeHTML(
+                    state.answers[question.key] || ""
+                )}"
                 placeholder="${escapeHTML(
                     question.placeholder || ""
                 )}"
-                value="${escapeHTML(
-                    state.answers[question.id] || ""
-                )}"
-                autocomplete="off"
             >
         `;
     }
 
-    if (question.type === "textarea") {
-        html += `
-            <textarea
-                id="questionInput"
-                class="question-input"
-                rows="5"
-                placeholder="${escapeHTML(
-                    question.placeholder || ""
-                )}"
-            >${escapeHTML(
-                state.answers[question.id] || ""
-            )}</textarea>
-        `;
-    }
-
-    html += `
-            <div
-                id="questionError"
-                class="question-error"
-                style="display:none;"
-            ></div>
-
-            <div class="question-navigation">
-                ${
-                    state.currentQuestion > 0
-                        ? `
-                            <button
-                                type="button"
-                                id="previousQuestion"
-                            >
-                                Retour
-                            </button>
-                        `
-                        : ""
-                }
-
-                <button
-                    type="button"
-                    id="nextQuestion"
-                >
-                    ${
-                        state.currentQuestion ===
-                        state.questions.length - 1
-                            ? "Voir les cadeaux"
-                            : "Continuer"
-                    }
-                </button>
-            </div>
-        </div>
-    `;
 
     container.innerHTML = html;
 
-    document
-        .querySelectorAll(".question-option")
+
+    container
+        .querySelectorAll(".option")
         .forEach(button => {
+
             button.addEventListener(
                 "click",
                 () => {
-                    const questionId =
-                        button.dataset.questionId;
 
                     const value =
-                        button.dataset.value;
+                        button.dataset.optionValue;
 
-                    state.answers[
-                        questionId
-                    ] = value;
+                    if (question.multiple) {
 
-                    document
-                        .querySelectorAll(
-                            ".question-option"
-                        )
-                        .forEach(optionButton => {
-                            optionButton.classList.remove(
-                                "selected"
+                        if (
+                            !Array.isArray(
+                                state.answers[
+                                    question.key
+                                ]
+                            )
+                        ) {
+                            state.answers[
+                                question.key
+                            ] = [];
+                        }
+
+                        const values =
+                            state.answers[
+                                question.key
+                            ];
+
+                        const index =
+                            values.indexOf(value);
+
+                        if (index >= 0) {
+                            values.splice(
+                                index,
+                                1
                             );
-                        });
+                        } else {
+                            values.push(value);
+                        }
 
-                    button.classList.add(
-                        "selected"
-                    );
+                        button.classList.toggle(
+                            "selected",
+                            values.includes(value)
+                        );
+
+                    } else {
+
+                        state.answers[
+                            question.key
+                        ] = value;
+
+                        container
+                            .querySelectorAll(".option")
+                            .forEach(
+                                option =>
+                                    option.classList.remove(
+                                        "selected"
+                                    )
+                            );
+
+                        button.classList.add(
+                            "selected"
+                        );
+                    }
                 }
             );
         });
 
-    const nextButton =
-        document.getElementById(
-            "nextQuestion"
-        );
 
-    if (nextButton) {
-        nextButton.addEventListener(
-            "click",
-            goNext
-        );
-    }
-
-    const previousButton =
+    const previous =
         document.getElementById(
             "previousQuestion"
         );
 
-    if (previousButton) {
-        previousButton.addEventListener(
-            "click",
-            goPrevious
-        );
+    if (previous) {
+        previous.disabled =
+            state.currentQuestion === 0;
     }
 }
 
-/* =========================================================
-   VALIDATION
-========================================================= */
 
 function validateQuestion() {
+
     const question =
         state.questions[
             state.currentQuestion
         ];
 
-    if (!question) {
-        return true;
-    }
+    if (!question) return true;
 
-    if (
-        question.type === "choice" &&
-        !state.answers[question.id]
-    ) {
-        showQuestionError(
-            "Choisis une réponse pour continuer."
-        );
 
-        return false;
-    }
+    if (question.type === "text") {
 
-    if (
-        question.type === "text" ||
-        question.type === "textarea"
-    ) {
         const input =
             document.getElementById(
-                "questionInput"
+                "questionTextInput"
             );
 
         const value =
-            input?.value?.trim() || "";
+            input?.value.trim() || "";
 
         if (!value) {
-            showQuestionError(
-                "Remplis ce champ pour continuer."
+            alert(
+                "Remplis ce champ avant de continuer."
             );
 
             return false;
         }
 
         state.answers[
-            question.id
+            question.key
         ] = value;
+
+        return true;
+    }
+
+
+    if (question.multiple) {
+
+        const values =
+            state.answers[
+                question.key
+            ];
+
+        if (
+            !Array.isArray(values) ||
+            !values.length
+        ) {
+            alert(
+                "Sélectionne au moins une réponse."
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    if (!state.answers[question.key]) {
+
+        alert(
+            "Sélectionne une réponse pour continuer."
+        );
+
+        return false;
     }
 
     return true;
 }
 
-function showQuestionError(message) {
-    const error =
-        document.getElementById(
-            "questionError"
-        );
-
-    if (!error) return;
-
-    error.textContent = message;
-    error.style.display = "block";
-}
-
-/* =========================================================
-   QUESTION SUIVANTE
-========================================================= */
 
 async function goNext() {
+
     if (!validateQuestion()) {
         return;
     }
 
-    const question =
-        state.questions[
-            state.currentQuestion
-        ];
-
-    state.questionHistory.push({
-        id: question.id,
-        question: question.text,
-        answer: state.answers[question.id]
-    });
-
-    state.currentQuestion++;
-
     if (
-        state.currentQuestion >=
-        state.questions.length
+        state.currentQuestion <
+        state.questions.length - 1
     ) {
-        await finishQuestionnaire();
+
+        state.currentQuestion++;
+
+        renderQuestion();
+
         return;
     }
 
-    renderQuestion();
-
-    /*
-     * L'IA peut analyser les réponses
-     * et éventuellement proposer une question
-     * supplémentaire.
-     */
-    await askAIForNextQuestion();
+    await finishQuestionnaire();
 }
 
-/* =========================================================
-   QUESTION PRÉCÉDENTE
-========================================================= */
 
 function goPrevious() {
-    if (state.currentQuestion <= 0) {
+
+    if (
+        state.currentQuestion <= 0
+    ) {
         return;
     }
 
@@ -750,430 +757,495 @@ function goPrevious() {
     renderQuestion();
 }
 
+
 /* =========================================================
-   IA — QUESTION SUPPLÉMENTAIRE
+   RECHERCHE / CRÉDIT
 ========================================================= */
 
-async function askAIForNextQuestion() {
+async function startGiftSearchWithCredit() {
+
     try {
-        const response = await fetch(
-            "/api/analyze-answer",
-            {
-                method: "POST",
-                headers: apiHeaders(),
-                body: JSON.stringify({
-                    answers: state.answers,
-                    lastAnswer:
-                        state.answers[
-                            state.questions[
-                                state.currentQuestion - 1
-                            ]?.id
-                        ],
-                    questionHistory:
-                        state.questionHistory
-                })
-            }
-        );
 
-        if (!response.ok) {
-            return;
-        }
-
-        const result =
-            await response.json();
-
-        if (
-            result.shouldContinue &&
-            result.nextQuestion
-        ) {
-            const question =
-                result.nextQuestion;
-
-            if (
-                question.id &&
-                question.text &&
-                question.type
-            ) {
-                /*
-                 * Évite les doublons.
-                 */
-                const alreadyExists =
-                    state.questions.some(
-                        existing =>
-                            existing.id ===
-                            question.id
-                    );
-
-                if (!alreadyExists) {
-                    state.questions.push(
-                        question
-                    );
+        const response =
+            await fetch(
+                "/api/start-search",
+                {
+                    method: "POST",
+                    headers: apiHeaders()
                 }
-            }
-        }
-    } catch (error) {
-        console.warn(
-            "⚠️ Analyse IA indisponible :",
-            error
-        );
-    }
-}
-
-/* =========================================================
-   FIN DU QUESTIONNAIRE
-========================================================= */
-
-async function finishQuestionnaire() {
-    const container =
-        getQuestionContainer();
-
-    if (container) {
-        container.innerHTML = `
-            <div class="question-loading">
-                <div class="loading-spinner"></div>
-                <h2>Recherche des meilleurs cadeaux...</h2>
-                <p>
-                    GiftFinder analyse tes réponses.
-                </p>
-            </div>
-        `;
-    }
-
-    await generateResults();
-}
-
-/* =========================================================
-   DÉMARRER UNE RECHERCHE
-========================================================= */
-
-async function startGiftSearchWithCredit(
-    category = ""
-) {
-    try {
-        const response = await fetch(
-            "/api/start-search",
-            {
-                method: "POST",
-                headers: apiHeaders(),
-                body: JSON.stringify({
-                    category
-                })
-            }
-        );
+            );
 
         const data =
             await response.json();
 
-        if (response.status === 402) {
-            openPaymentModal();
-            return false;
-        }
 
         if (!response.ok) {
+
+            if (
+                response.status === 402
+            ) {
+                openPaymentModal();
+                return false;
+            }
+
             throw new Error(
                 data.error ||
-                    "Impossible de démarrer la recherche."
+                "Impossible de lancer la recherche."
             );
         }
 
-        return true;
-    } catch (error) {
-        console.error(
-            "❌ Recherche impossible :",
-            error
-        );
 
-        alert(
-            error.message ||
-                "Une erreur est survenue."
-        );
+        updateAccountUI(data);
+
+        return true;
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(error.message);
 
         return false;
     }
 }
 
-/* =========================================================
-   OUVRIR UNE RECHERCHE AVEC LE SYSTÈME DE CRÉDITS
-========================================================= */
 
-async function startGiftSearch(
-    category = ""
-) {
+async function finishQuestionnaire() {
+
     const allowed =
-        await startGiftSearchWithCredit(
-            category
-        );
+        await startGiftSearchWithCredit();
 
     if (!allowed) {
         return;
     }
 
-    openQuestionnaire(category);
+    closeQuestionnaire();
+
+    const results =
+        document.getElementById(
+            "giftResults"
+        );
+
+    if (results) {
+        results.style.display = "block";
+
+        results.scrollIntoView({
+            behavior: "smooth"
+        });
+    }
+
+    await generateResults();
 }
+
+
+async function startGiftSearch() {
+    await finishQuestionnaire();
+}
+
+
+/* =========================================================
+   RÉSULTATS IA
+========================================================= */
+
+async function generateResults() {
+
+    const grid =
+        document.getElementById(
+            "resultsGrid"
+        );
+
+    if (!grid) return;
+
+
+    grid.innerHTML = `
+        <div style="
+            text-align:center;
+            padding:50px 20px;
+        ">
+
+            <div style="font-size:50px;">
+                🎁
+            </div>
+
+            <strong>
+                Recherche des meilleurs cadeaux...
+            </strong>
+
+            <p style="
+                color:#6f7180;
+                margin-top:8px;
+            ">
+                GiftFinder analyse tes critères.
+            </p>
+
+        </div>
+    `;
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/recommendations",
+                {
+                    method: "POST",
+                    headers: apiHeaders(),
+                    body: JSON.stringify({
+                        answers: state.answers
+                    })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+            throw new Error(
+                data.error ||
+                "Impossible de générer les recommandations."
+            );
+        }
+
+
+        state.recommendations =
+            Array.isArray(
+                data.recommendations
+            )
+                ? data.recommendations
+                : Array.isArray(data)
+                    ? data
+                    : [];
+
+
+        renderRecommendations(
+            state.recommendations
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        grid.innerHTML = `
+            <div style="
+                text-align:center;
+                padding:40px;
+            ">
+
+                <strong>
+                    Une erreur est survenue.
+                </strong>
+
+                <p style="
+                    color:#6f7180;
+                    margin-top:8px;
+                ">
+                    ${escapeHTML(error.message)}
+                </p>
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    style="margin-top:15px;"
+                    onclick="window.generateResults()"
+                >
+                    Réessayer
+                </button>
+
+            </div>
+        `;
+    }
+}
+
+
+function renderRecommendations(products) {
+
+    const grid =
+        document.getElementById(
+            "resultsGrid"
+        );
+
+    if (!grid) return;
+
+
+    if (!products.length) {
+
+        grid.innerHTML = `
+            <div style="
+                text-align:center;
+                padding:40px;
+            ">
+                Aucun cadeau trouvé.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    grid.innerHTML =
+        products.map(
+            product => {
+
+                const favorite =
+                    isFavorite(product);
+
+
+                const safeProduct =
+                    JSON.stringify(
+                        product
+                    )
+                    .replace(
+                        /</g,
+                        "\\u003c"
+                    );
+
+
+                return `
+                    <article class="result-card">
+
+                        ${
+                            product.image
+                                ? `
+                                    <img
+                                        src="${escapeHTML(product.image)}"
+                                        alt="${escapeHTML(product.name || "Cadeau")}"
+                                        loading="lazy"
+                                    >
+                                `
+                                : `
+                                    <div style="
+                                        width:150px;
+                                        height:150px;
+                                        flex-shrink:0;
+                                        display:flex;
+                                        align-items:center;
+                                        justify-content:center;
+                                        background:#f5f5f8;
+                                        border-radius:13px;
+                                        font-size:45px;
+                                    ">
+                                        🎁
+                                    </div>
+                                `
+                        }
+
+
+                        <div class="result-content">
+
+                            <h3>
+                                ${escapeHTML(
+                                    product.name ||
+                                    "Cadeau"
+                                )}
+                            </h3>
+
+
+                            ${
+                                product.price
+                                    ? `
+                                        <div class="result-price">
+                                            ${escapeHTML(
+                                                product.price
+                                            )}
+                                        </div>
+                                    `
+                                    : ""
+                            }
+
+
+                            <button
+                                type="button"
+                                class="favorite-result-button"
+                                data-product='${safeProduct}'
+                            >
+                                ${
+                                    favorite
+                                        ? "♥ Retirer"
+                                        : "♡ Favori"
+                                }
+                            </button>
+
+
+                            ${
+                                product.url
+                                    ? `
+                                        <a
+                                            class="amazon-link"
+                                            href="${escapeHTML(product.url)}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            Voir le produit
+                                        </a>
+                                    `
+                                    : ""
+                            }
+
+                        </div>
+
+                    </article>
+                `;
+            }
+        ).join("");
+
+
+    grid
+        .querySelectorAll(
+            "[data-product]"
+        )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    try {
+
+                        const product =
+                            JSON.parse(
+                                button.dataset.product
+                            );
+
+                        toggleGiftFinderFavorite(
+                            product
+                        );
+
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+            );
+        });
+}
+
 
 /* =========================================================
    COMPTE
 ========================================================= */
 
 async function loadAccount() {
+
     try {
+
         const response =
             await fetch(
                 "/api/account",
                 {
-                    headers: {
-                        "x-giftfinder-user-id":
-                            getGiftFinderUserId()
-                    }
+                    headers: apiHeaders()
                 }
             );
 
         if (!response.ok) {
-            return null;
+            return;
         }
 
-        const account =
+        const data =
             await response.json();
 
-        updateAccountUI(account);
+        updateAccountUI(data);
 
-        return account;
     } catch (error) {
-        console.warn(
-            "⚠️ Impossible de récupérer le compte :",
+
+        console.error(
+            "Compte :",
             error
         );
-
-        return null;
     }
 }
 
-function updateAccountUI(account) {
-    if (!account) return;
 
-    const creditElements =
-        document.querySelectorAll(
-            "[data-giftfinder-credits]"
+function updateAccountUI(data) {
+
+    if (!data) return;
+
+
+    let remaining;
+
+
+    if (data.premium) {
+        remaining = "∞";
+    } else if (
+        Number.isFinite(
+            Number(data.credits)
+        )
+    ) {
+        remaining =
+            Number(data.credits);
+    } else {
+        remaining =
+            data.canSearch
+                ? 1
+                : 0;
+    }
+
+
+    document
+        .querySelectorAll(
+            "#headerSearchesRemaining,#searchesRemaining"
+        )
+        .forEach(element => {
+            element.textContent =
+                remaining;
+        });
+
+
+    const status =
+        document.getElementById(
+            "searchesStatus"
         );
 
-    creditElements.forEach(element => {
-        element.textContent =
-            account.premium
-                ? "Premium"
-                : String(
-                      account.credits || 0
-                  );
-    });
+    if (status) {
 
-    const premiumElements =
-        document.querySelectorAll(
-            "[data-giftfinder-premium]"
+        status.textContent =
+            data.premium
+                ? "recherches illimitées"
+                : Number(remaining) > 1
+                    ? "recherches restantes"
+                    : "recherche restante";
+    }
+
+
+    const renewal =
+        document.getElementById(
+            "searchesRenewal"
         );
 
-    premiumElements.forEach(element => {
-        element.textContent =
-            account.premium
+    if (renewal) {
+
+        renewal.textContent =
+            data.premium
+                ? "Premium actif : recherches illimitées."
+                : "Recherche gratuite disponible, sans cumul.";
+    }
+
+
+    const premium =
+        document.getElementById(
+            "premiumStatus"
+        );
+
+    if (premium) {
+
+        premium.textContent =
+            data.premium
                 ? "Premium actif"
-                : "Compte gratuit";
-    });
-}
-
-/* =========================================================
-   MODAL PAIEMENT
-========================================================= */
-
-function openPaymentModal() {
-    let modal =
-        document.getElementById(
-            "giftFinderPaymentModal"
-        );
-
-    if (!modal) {
-        modal =
-            document.createElement("div");
-
-        modal.id =
-            "giftFinderPaymentModal";
-
-        modal.innerHTML = `
-            <div class="giftfinder-payment-overlay">
-                <div class="giftfinder-payment-box">
-
-                    <button
-                        type="button"
-                        id="closePaymentModal"
-                        class="giftfinder-payment-close"
-                    >
-                        ×
-                    </button>
-
-                    <h2>
-                        Continue avec GiftFinder
-                    </h2>
-
-                    <p>
-                        Tu as utilisé ta recherche
-                        gratuite du jour.
-                    </p>
-
-                    <div class="giftfinder-payment-options">
-
-                        <button
-                            type="button"
-                            class="giftfinder-payment-option"
-                            data-payment-product="premium"
-                        >
-                            <strong>
-                                Premium
-                            </strong>
-
-                            <span>
-                                3,99 € / mois
-                            </span>
-
-                            <small>
-                                Recherches illimitées
-                            </small>
-                        </button>
-
-                        <button
-                            type="button"
-                            class="giftfinder-payment-option"
-                            data-payment-product="pack10"
-                        >
-                            <strong>
-                                Pack 10
-                            </strong>
-
-                            <span>
-                                4,99 €
-                            </span>
-
-                            <small>
-                                10 recherches
-                            </small>
-                        </button>
-
-                        <button
-                            type="button"
-                            class="giftfinder-payment-option"
-                            data-payment-product="pack30"
-                        >
-                            <strong>
-                                Pack 30
-                            </strong>
-
-                            <span>
-                                9,99 €
-                            </span>
-
-                            <small>
-                                30 recherches
-                            </small>
-                        </button>
-
-                    </div>
-
-                    <div
-                        id="paymentError"
-                        style="
-                            display:none;
-                            margin-top:15px;
-                        "
-                    ></div>
-
-                    <div
-                        id="paymentLoading"
-                        style="
-                            display:none;
-                            margin-top:15px;
-                        "
-                    >
-                        Redirection vers Stripe...
-                    </div>
-
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-
-        const closeButton =
-            document.getElementById(
-                "closePaymentModal"
-            );
-
-        if (closeButton) {
-            closeButton.addEventListener(
-                "click",
-                closePaymentModal
-            );
-        }
-
-        modal
-            .querySelectorAll(
-                "[data-payment-product]"
-            )
-            .forEach(button => {
-                button.addEventListener(
-                    "click",
-                    () => {
-                        createCheckoutSession(
-                            button.dataset
-                                .paymentProduct
-                        );
-                    }
-                );
-            });
+                : "Premium non activé";
     }
-
-    modal.style.display = "flex";
-    modal.classList.add("active");
-
-    loadAccount();
 }
 
-function closePaymentModal() {
-    const modal =
-        document.getElementById(
-            "giftFinderPaymentModal"
-        );
-
-    if (!modal) return;
-
-    modal.classList.remove("active");
-    modal.style.display = "none";
-}
 
 /* =========================================================
-   STRIPE CHECKOUT
+   STRIPE
 ========================================================= */
 
 async function createCheckoutSession(
     product
 ) {
-    const loading =
-        document.getElementById(
-            "paymentLoading"
-        );
-
-    const errorBox =
-        document.getElementById(
-            "paymentError"
-        );
-
-    if (loading) {
-        loading.style.display =
-            "block";
-    }
-
-    if (errorBox) {
-        errorBox.style.display =
-            "none";
-        errorBox.textContent = "";
-    }
 
     try {
+
         const response =
             await fetch(
                 "/api/create-checkout-session",
@@ -1186,596 +1258,487 @@ async function createCheckoutSession(
                 }
             );
 
+
         const data =
             await response.json();
 
+
         if (!response.ok) {
+
             throw new Error(
                 data.error ||
-                    "Impossible de créer le paiement."
+                "Impossible de créer le paiement."
             );
         }
 
-        if (!data.url) {
-            throw new Error(
-                "Stripe n'a pas fourni de lien de paiement."
-            );
+
+        if (data.url) {
+
+            window.location.href =
+                data.url;
         }
 
-        /*
-         * Redirection vers Stripe Checkout.
-         */
-        window.location.href =
-            data.url;
     } catch (error) {
-        console.error(
-            "❌ Erreur Stripe :",
-            error
-        );
 
-        if (loading) {
-            loading.style.display =
-                "none";
-        }
+        console.error(error);
 
-        if (errorBox) {
-            errorBox.textContent =
-                error.message ||
-                "Impossible d'ouvrir le paiement.";
-
-            errorBox.style.display =
-                "block";
-        }
+        alert(error.message);
     }
 }
 
-/* =========================================================
-   RECOMMANDATIONS
-========================================================= */
 
-async function generateResults() {
-    try {
-        const response =
-            await fetch(
-                "/api/recommendations",
-                {
-                    method: "POST",
-                    headers: apiHeaders(),
-                    body: JSON.stringify(
-                        state.answers
-                    )
-                }
-            );
+function openPaymentModal() {
 
-        const data =
-            await response.json();
-
-        if (!response.ok) {
-            throw new Error(
-                data.error ||
-                    "Impossible de générer les cadeaux."
-            );
-        }
-
-        state.recommendations =
-            Array.isArray(
-                data.recommendations
-            )
-                ? data.recommendations
-                : [];
-
-        closeQuestionnaire();
-
-        renderRecommendations(
-            state.recommendations
+    let modal =
+        document.getElementById(
+            "giftFinderPaymentModal"
         );
 
-        await loadAccount();
-    } catch (error) {
-        console.error(
-            "❌ Erreur recommandations :",
-            error
-        );
 
-        const container =
-            getQuestionContainer();
+    if (!modal) {
 
-        if (container) {
-            container.innerHTML = `
-                <div class="question-error">
-                    <h2>
-                        Une erreur est survenue
-                    </h2>
+        modal =
+            document.createElement(
+                "div"
+            );
 
-                    <p>
-                        ${escapeHTML(
-                            error.message ||
-                                "Impossible de générer les recommandations."
-                        )}
-                    </p>
+        modal.id =
+            "giftFinderPaymentModal";
+
+        modal.className =
+            "questionnaire-modal";
+
+
+        modal.innerHTML = `
+
+            <div
+                class="questionnaire"
+                style="max-width:520px;"
+            >
+
+                <button
+                    type="button"
+                    class="close-button"
+                    id="closePaymentModal"
+                >
+                    ×
+                </button>
+
+                <div class="section-label">
+                    GIFT FINDER
+                </div>
+
+                <h2 style="margin-bottom:10px;">
+                    Continue ta recherche
+                </h2>
+
+                <p style="
+                    color:#6f7180;
+                    margin-bottom:25px;
+                ">
+                    Choisis une formule pour continuer.
+                </p>
+
+
+                <div style="
+                    display:grid;
+                    gap:12px;
+                ">
 
                     <button
                         type="button"
-                        onclick="closeQuestionnaire()"
+                        class="premium-button"
+                        data-payment-product="premium"
                     >
-                        Fermer
+                        Premium — 3,99 €/mois
                     </button>
+
+                    <button
+                        type="button"
+                        class="premium-button"
+                        data-payment-product="pack10"
+                    >
+                        Pack 10 recherches — 4,99 €
+                    </button>
+
+                    <button
+                        type="button"
+                        class="premium-button"
+                        data-payment-product="pack30"
+                    >
+                        Pack 30 recherches — 9,99 €
+                    </button>
+
                 </div>
-            `;
-        } else {
-            alert(
-                error.message ||
-                    "Impossible de générer les recommandations."
-            );
-        }
-    }
-}
 
-/* =========================================================
-   AFFICHAGE DES RÉSULTATS
-========================================================= */
-
-function renderRecommendations(
-    recommendations
-) {
-    const container =
-        document.getElementById(
-            "recommendations"
-        ) ||
-        document.getElementById(
-            "results"
-        ) ||
-        document.getElementById(
-            "giftResults"
-        );
-
-    if (!container) {
-        console.warn(
-            "⚠️ Conteneur des recommandations introuvable."
-        );
-
-        return;
-    }
-
-    if (
-        !recommendations ||
-        recommendations.length === 0
-    ) {
-        container.innerHTML = `
-            <div class="no-results">
-                <h2>
-                    Aucun cadeau trouvé
-                </h2>
-
-                <p>
-                    Essaie avec d'autres préférences.
-                </p>
             </div>
         `;
 
-        return;
+
+        document.body.appendChild(
+            modal
+        );
+
+
+        document
+            .getElementById(
+                "closePaymentModal"
+            )
+            .addEventListener(
+                "click",
+                closePaymentModal
+            );
+
+
+        modal.addEventListener(
+            "click",
+            event => {
+
+                if (
+                    event.target ===
+                    modal
+                ) {
+                    closePaymentModal();
+                }
+            }
+        );
+
+
+        setupPaymentButtons(
+            modal
+        );
     }
 
-    let html = `
-        <div class="gift-results-header">
-            <h2>
-                Voici des idées pour toi 🎁
-            </h2>
 
-            <p>
-                ${recommendations.length}
-                recommandations
-            </p>
-        </div>
-
-        <div class="gift-results-list">
-    `;
-
-    recommendations.forEach(
-        (item, index) => {
-            const favorite =
-                isFavorite(item);
-
-            const image =
-                item.image ||
-                item.imageUrl ||
-                item.thumbnail ||
-                "";
-
-            const name =
-                item.name ||
-                "Cadeau";
-
-            const description =
-                item.description ||
-                "";
-
-            const reason =
-                item.reason ||
-                "";
-
-            const price =
-                item.price ||
-                item.estimatedPrice ||
-                "";
-
-            const link =
-                item.link ||
-                item.url ||
-                "#";
-
-            html += `
-                <article
-                    class="gift-card"
-                    data-index="${index}"
-                >
-
-                    <div class="gift-card-image">
-
-                        ${
-                            image
-                                ? `
-                                    <img
-                                        src="${escapeHTML(
-                                            image
-                                        )}"
-                                        alt="${escapeHTML(
-                                            name
-                                        )}"
-                                        loading="lazy"
-                                    >
-                                `
-                                : `
-                                    <div class="gift-card-no-image">
-                                        🎁
-                                    </div>
-                                `
-                        }
-
-                    </div>
-
-                    <div class="gift-card-content">
-
-                        <h3>
-                            ${escapeHTML(
-                                name
-                            )}
-                        </h3>
-
-                        ${
-                            price
-                                ? `
-                                    <div class="gift-card-price">
-                                        ${escapeHTML(
-                                            price
-                                        )}
-                                    </div>
-                                `
-                                : ""
-                        }
-
-                        ${
-                            description
-                                ? `
-                                    <p class="gift-card-description">
-                                        ${escapeHTML(
-                                            description
-                                        )}
-                                    </p>
-                                `
-                                : ""
-                        }
-
-                        ${
-                            reason
-                                ? `
-                                    <p class="gift-card-reason">
-                                        ${escapeHTML(
-                                            reason
-                                        )}
-                                    </p>
-                                `
-                                : ""
-                        }
-
-                        <div class="gift-card-actions">
-
-                            ${
-                                link &&
-                                link !== "#"
-                                    ? `
-                                        <a
-                                            href="${escapeHTML(
-                                                link
-                                            )}"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            class="gift-card-buy"
-                                        >
-                                            Voir le cadeau
-                                        </a>
-                                    `
-                                    : ""
-                            }
-
-                            <button
-                                type="button"
-                                class="gift-card-favorite ${
-                                    favorite
-                                        ? "active"
-                                        : ""
-                                }"
-                                data-favorite-index="${index}"
-                                aria-label="${
-                                    favorite
-                                        ? "Retirer des favoris"
-                                        : "Ajouter aux favoris"
-                                }"
-                            >
-                                ${
-                                    favorite
-                                        ? "♥"
-                                        : "♡"
-                                }
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </article>
-            `;
-        }
+    modal.classList.add(
+        "open"
     );
 
-    html += `
-        </div>
-    `;
-
-    container.innerHTML = html;
-
-    container
-        .querySelectorAll(
-            "[data-favorite-index]"
-        )
-        .forEach(button => {
-            button.addEventListener(
-                "click",
-                () => {
-                    const index =
-                        Number(
-                            button.dataset
-                                .favoriteIndex
-                        );
-
-                    toggleFavorite(index);
-                }
-            );
-        });
+    modal.style.display =
+        "flex";
 }
 
-/* =========================================================
-   BOUTONS DE PAIEMENT EXISTANTS DANS LE HTML
-========================================================= */
 
-function setupPaymentButtons() {
-    /*
-     * Permet d'utiliser directement :
-     *
-     * data-payment-product="premium"
-     * data-payment-product="pack10"
-     * data-payment-product="pack30"
-     */
+function closePaymentModal() {
 
-    document
+    const modal =
+        document.getElementById(
+            "giftFinderPaymentModal"
+        );
+
+    if (!modal) return;
+
+    modal.classList.remove(
+        "open"
+    );
+
+    modal.style.display =
+        "none";
+}
+
+
+function setupPaymentButtons(
+    root = document
+) {
+
+    root
         .querySelectorAll(
             "[data-payment-product]"
         )
         .forEach(button => {
-            /*
-             * Évite de brancher deux fois
-             * le même bouton.
-             */
+
             if (
-                button.dataset
-                    .giftfinderStripeReady ===
-                "true"
+                button.dataset.ready === "1"
             ) {
                 return;
             }
 
-            button.dataset
-                .giftfinderStripeReady =
-                "true";
+            button.dataset.ready =
+                "1";
+
 
             button.addEventListener(
                 "click",
-                event => {
-                    event.preventDefault();
+                async () => {
 
-                    createCheckoutSession(
-                        button.dataset
-                            .paymentProduct
+                    await createCheckoutSession(
+                        button.dataset.paymentProduct
                     );
                 }
             );
         });
 
-    /*
-     * IDs possibles pour les boutons
-     * si ton HTML utilise ces noms.
-     */
 
-    const mappings = [
-        [
-            "premiumButton",
-            "premium"
-        ],
-        [
-            "premium-btn",
-            "premium"
-        ],
-        [
-            "pack10Button",
-            "pack10"
-        ],
-        [
-            "pack10-btn",
-            "pack10"
-        ],
-        [
-            "pack30Button",
-            "pack30"
-        ],
-        [
-            "pack30-btn",
-            "pack30"
-        ]
-    ];
+    const premium =
+        document.getElementById(
+            "demoPremiumButton"
+        );
 
-    mappings.forEach(
-        ([id, product]) => {
-            const button =
-                document.getElementById(
-                    id
-                );
 
-            if (!button) return;
+    if (
+        premium &&
+        premium.dataset.ready !== "1"
+    ) {
 
-            if (
-                button.dataset
-                    .giftfinderStripeReady ===
-                "true"
-            ) {
-                return;
+        premium.dataset.ready =
+            "1";
+
+        premium.addEventListener(
+            "click",
+            event => {
+
+                event.preventDefault();
+
+                openPaymentModal();
             }
+        );
+    }
 
-            button.dataset
-                .giftfinderStripeReady =
-                "true";
-
-            button.addEventListener(
-                "click",
-                event => {
-                    event.preventDefault();
-
-                    createCheckoutSession(
-                        product
-                    );
-                }
-            );
-        }
-    );
-}
-
-/* =========================================================
-   BOUTONS DE RECHERCHE EXISTANTS
-========================================================= */
-
-function setupSearchButtons() {
-    /*
-     * Boutons utilisant :
-     * data-giftfinder-search
-     */
 
     document
         .querySelectorAll(
-            "[data-giftfinder-search]"
+            ".pack-button"
         )
         .forEach(button => {
+
             if (
-                button.dataset
-                    .giftfinderSearchReady ===
-                "true"
+                button.dataset.ready === "1"
             ) {
                 return;
             }
 
-            button.dataset
-                .giftfinderSearchReady =
-                "true";
+            button.dataset.ready =
+                "1";
+
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    const pack =
+                        button.dataset.pack;
+
+                    if (
+                        pack === "10"
+                    ) {
+                        createCheckoutSession(
+                            "pack10"
+                        );
+                    }
+
+                    if (
+                        pack === "30"
+                    ) {
+                        createCheckoutSession(
+                            "pack30"
+                        );
+                    }
+                }
+            );
+        });
+}
+
+
+/* =========================================================
+   RECHERCHE DIRECTE
+========================================================= */
+
+function setupSearchButtons() {
+
+    const input =
+        document.getElementById(
+            "giftSearchInput"
+        );
+
+    const button =
+        document.getElementById(
+            "giftSearchButton"
+        );
+
+
+    if (button) {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                state.answers.search =
+                    input?.value.trim() || "";
+
+                state.answers.preferences =
+                    state.answers.search;
+
+                openQuestionnaire();
+            }
+        );
+    }
+
+
+    document
+        .querySelectorAll(
+            "[data-open-questionnaire]"
+        )
+        .forEach(button => {
 
             button.addEventListener(
                 "click",
                 event => {
+
                     event.preventDefault();
 
-                    const category =
-                        button.dataset
-                            .giftfinderCategory ||
-                        "";
-
-                    startGiftSearch(
-                        category
+                    openQuestionnaire(
+                        button.dataset.category ||
+                        ""
                     );
                 }
             );
         });
 }
 
+
 /* =========================================================
-   ÉVÉNEMENTS GLOBAUX
+   INITIALISATION
 ========================================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
     () => {
+
         getGiftFinderUserId();
 
-        setupPaymentButtons();
         setupSearchButtons();
+
+        setupPaymentButtons();
+
+        updateFavoritesCount();
+
+        renderFavoritesPreview();
 
         loadAccount();
 
-        /*
-         * Fermer le modal questionnaire
-         * en cliquant sur l'extérieur.
-         */
-        document.addEventListener(
-            "click",
-            event => {
-                const modal =
-                    getModal();
 
-                if (
-                    modal &&
-                    event.target ===
+        const next =
+            document.getElementById(
+                "nextQuestion"
+            );
+
+        const previous =
+            document.getElementById(
+                "previousQuestion"
+            );
+
+
+        if (next) {
+            next.addEventListener(
+                "click",
+                goNext
+            );
+        }
+
+
+        if (previous) {
+            previous.addEventListener(
+                "click",
+                goPrevious
+            );
+        }
+
+
+        document
+            .querySelectorAll(
+                "[data-close-questionnaire]"
+            )
+            .forEach(button => {
+
+                button.addEventListener(
+                    "click",
+                    closeQuestionnaire
+                );
+            });
+
+
+        const modal =
+            getModal();
+
+
+        if (modal) {
+
+            modal.addEventListener(
+                "click",
+                event => {
+
+                    if (
+                        event.target ===
                         modal
-                ) {
-                    closeQuestionnaire();
+                    ) {
+                        closeQuestionnaire();
+                    }
                 }
-            }
-        );
+            );
+        }
 
-        /*
-         * Paiement après retour de Stripe.
-         */
+
+        const menu =
+            document.getElementById(
+                "mobileMenuButton"
+            );
+
+        const nav =
+            document.getElementById(
+                "mainNav"
+            );
+
+
+        if (
+            menu &&
+            nav
+        ) {
+
+            menu.addEventListener(
+                "click",
+                () => {
+                    nav.classList.toggle(
+                        "open"
+                    );
+                }
+            );
+        }
+
+
+        document
+            .querySelectorAll(
+                "#mainNav a"
+            )
+            .forEach(link => {
+
+                link.addEventListener(
+                    "click",
+                    () => {
+                        nav?.classList.remove(
+                            "open"
+                        );
+                    }
+                );
+            });
+
+
         const params =
             new URLSearchParams(
                 window.location.search
             );
 
-        const payment =
-            params.get(
-                "payment"
-            );
 
         if (
-            payment ===
+            params.get("payment") ===
             "success"
         ) {
-            /*
-             * Le webhook Stripe peut prendre
-             * quelques instants.
-             */
-            setTimeout(
-                loadAccount,
-                1500
+
+            alert(
+                "Paiement confirmé ! Ton compte GiftFinder va être mis à jour."
             );
 
-            /*
-             * Nettoie l'URL.
-             */
+            loadAccount();
+
             window.history.replaceState(
                 {},
                 document.title,
@@ -1783,10 +1746,16 @@ document.addEventListener(
             );
         }
 
+
         if (
-            payment ===
+            params.get("payment") ===
             "cancelled"
         ) {
+
+            alert(
+                "Paiement annulé."
+            );
+
             window.history.replaceState(
                 {},
                 document.title,
@@ -1796,8 +1765,9 @@ document.addEventListener(
     }
 );
 
+
 /* =========================================================
-   FONCTIONS GLOBALES
+   EXPORTS
 ========================================================= */
 
 window.openQuestionnaire =
@@ -1812,22 +1782,15 @@ window.generateResults =
 window.renderRecommendations =
     renderRecommendations;
 
-/*
- * Ces fonctions démarrent maintenant
- * une recherche avec vérification du crédit.
- */
-window.openGiftFinder =
-    startGiftSearch;
-
 window.startGiftSearch =
     startGiftSearch;
 
-window.openGiftFinderQuestionnaire =
-    startGiftSearch;
+window.openGiftFinder =
+    openQuestionnaire;
 
-/*
- * Stripe.
- */
+window.openGiftFinderQuestionnaire =
+    openQuestionnaire;
+
 window.createCheckoutSession =
     createCheckoutSession;
 
@@ -1837,8 +1800,11 @@ window.openPaymentModal =
 window.closePaymentModal =
     closePaymentModal;
 
-/*
- * Compte.
- */
 window.loadGiftFinderAccount =
     loadAccount;
+
+window.toggleGiftFinderFavorite =
+    toggleGiftFinderFavorite;
+
+window.removeGiftFinderFavorite =
+    removeGiftFinderFavorite;
