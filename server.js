@@ -26,6 +26,15 @@ const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5.6-luna";
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 
+const STRIPE_PRICE_PREMIUM =
+    process.env.STRIPE_PRICE_GIFTFINDER_PREMIUM;
+
+const STRIPE_PRICE_PACK10 =
+    process.env.STRIPE_PRICE_PACK_10_RECHERCHES;
+
+const STRIPE_PRICE_PACK30 =
+    process.env.STRIPE_PRICE_PACK_30_RECHERCHES;
+
 const PUBLIC_URL =
     process.env.PUBLIC_URL ||
     `http://localhost:${PORT}`;
@@ -38,9 +47,27 @@ if (!STRIPE_SECRET_KEY) {
     console.error("❌ STRIPE_SECRET_KEY est absente.");
 }
 
+if (!STRIPE_PRICE_PREMIUM) {
+    console.error(
+        "❌ STRIPE_PRICE_GIFTFINDER_PREMIUM est absente."
+    );
+}
+
+if (!STRIPE_PRICE_PACK10) {
+    console.error(
+        "❌ STRIPE_PRICE_PACK_10_RECHERCHES est absente."
+    );
+}
+
+if (!STRIPE_PRICE_PACK30) {
+    console.error(
+        "❌ STRIPE_PRICE_PACK_30_RECHERCHES est absente."
+    );
+}
+
 if (!STRIPE_WEBHOOK_SECRET) {
     console.warn(
-        "⚠️ STRIPE_WEBHOOK_SECRET est absente. Le webhook Stripe ne pourra pas être vérifié."
+        "⚠️ STRIPE_WEBHOOK_SECRET est absente."
     );
 }
 
@@ -54,41 +81,34 @@ const stripe = STRIPE_SECRET_KEY
     ? new Stripe(STRIPE_SECRET_KEY)
     : null;
 
-
 /* =========================================================
    PRODUITS STRIPE
 ========================================================= */
 
 const STRIPE_PRODUCTS = {
     premium: {
-        priceId: "price_1UGjgq3XSUH9OuRAzkyxWdEx",
+        priceId: STRIPE_PRICE_PREMIUM,
         mode: "subscription",
         name: "GiftFinder Premium"
     },
 
     pack10: {
-        priceId: "price_1UGjhE3XSUH9OuRAnOOceF6s",
+        priceId: STRIPE_PRICE_PACK10,
         mode: "payment",
         name: "Pack 10 recherches",
         credits: 10
     },
 
     pack30: {
-        priceId: "price_1UGjhd3XSUH9OuRAachMEWE3",
+        priceId: STRIPE_PRICE_PACK30,
         mode: "payment",
         name: "Pack 30 recherches",
         credits: 30
     }
 };
 
-
 /* =========================================================
    STOCKAGE UTILISATEURS
-   ---------------------------------------------------------
-   Version simple pour le développement.
-
-   Pour la production sur Render, il faudra remplacer
-   ce stockage par une vraie base de données persistante.
 ========================================================= */
 
 const DATA_DIR = path.join(__dirname, "storage");
@@ -141,18 +161,21 @@ function saveUsers(users) {
     }
 }
 
+function createDefaultUser() {
+    return {
+        credits: 0,
+        lastFreeSearch: null,
+        premium: false,
+        stripeCustomerId: null,
+        stripeSubscriptionId: null
+    };
+}
+
 function getUser(userId) {
     const users = loadUsers();
 
     if (!users[userId]) {
-        users[userId] = {
-            credits: 0,
-            lastFreeSearch: null,
-            premium: false,
-            stripeCustomerId: null,
-            stripeSubscriptionId: null
-        };
-
+        users[userId] = createDefaultUser();
         saveUsers(users);
     }
 
@@ -163,13 +186,7 @@ function updateUser(userId, changes) {
     const users = loadUsers();
 
     if (!users[userId]) {
-        users[userId] = {
-            credits: 0,
-            lastFreeSearch: null,
-            premium: false,
-            stripeCustomerId: null,
-            stripeSubscriptionId: null
-        };
+        users[userId] = createDefaultUser();
     }
 
     users[userId] = {
@@ -181,7 +198,6 @@ function updateUser(userId, changes) {
 
     return users[userId];
 }
-
 
 /* =========================================================
    IDENTIFIANT UTILISATEUR
@@ -206,13 +222,9 @@ function getUserId(req) {
     return userId.slice(0, 100);
 }
 
-
 /* =========================================================
-   STRIPE WEBHOOK
-   ---------------------------------------------------------
-   IMPORTANT :
-   Cette route doit être AVANT express.json()
-   afin de conserver le body brut.
+   WEBHOOK STRIPE
+   IMPORTANT : AVANT express.json()
 ========================================================= */
 
 app.post(
@@ -230,27 +242,21 @@ app.post(
         let event;
 
         try {
-            if (STRIPE_WEBHOOK_SECRET) {
-                const signature =
-                    req.headers[
-                        "stripe-signature"
-                    ];
-
-                event =
-                    stripe.webhooks.constructEvent(
-                        req.body,
-                        signature,
-                        STRIPE_WEBHOOK_SECRET
-                    );
-            } else {
-                console.error(
-                    "❌ STRIPE_WEBHOOK_SECRET manquante."
-                );
-
+            if (!STRIPE_WEBHOOK_SECRET) {
                 return res.status(500).send(
                     "Webhook secret manquant."
                 );
             }
+
+            const signature =
+                req.headers["stripe-signature"];
+
+            event =
+                stripe.webhooks.constructEvent(
+                    req.body,
+                    signature,
+                    STRIPE_WEBHOOK_SECRET
+                );
         } catch (error) {
             console.error(
                 "❌ Signature webhook invalide :",
@@ -267,10 +273,9 @@ app.post(
             event.type
         );
 
-
-        /* =====================================================
-           ACHAT TERMINÉ
-        ===================================================== */
+        /* =================================================
+           PAIEMENT CHECKOUT TERMINÉ
+        ================================================= */
 
         if (
             event.type ===
@@ -287,7 +292,17 @@ app.post(
 
             if (!userId) {
                 console.error(
-                    "❌ Aucun userId dans le paiement Stripe."
+                    "❌ Aucun userId dans la session Stripe."
+                );
+
+                return res.json({
+                    received: true
+                });
+            }
+
+            if (!product) {
+                console.error(
+                    "❌ Aucun produit dans la session Stripe."
                 );
 
                 return res.json({
@@ -298,21 +313,16 @@ app.post(
             const user =
                 getUser(userId);
 
-
-            /* ================================================
-               PACK 10
-            ================================================= */
+            /* PACK 10 */
 
             if (product === "pack10") {
-                const newCredits =
-                    Number(user.credits || 0) +
-                    10;
-
                 updateUser(
                     userId,
                     {
                         credits:
-                            newCredits
+                            Number(
+                                user.credits || 0
+                            ) + 10
                     }
                 );
 
@@ -321,21 +331,16 @@ app.post(
                 );
             }
 
-
-            /* ================================================
-               PACK 30
-            ================================================= */
+            /* PACK 30 */
 
             if (product === "pack30") {
-                const newCredits =
-                    Number(user.credits || 0) +
-                    30;
-
                 updateUser(
                     userId,
                     {
                         credits:
-                            newCredits
+                            Number(
+                                user.credits || 0
+                            ) + 30
                     }
                 );
 
@@ -344,10 +349,7 @@ app.post(
                 );
             }
 
-
-            /* ================================================
-               PREMIUM
-            ================================================= */
+            /* PREMIUM */
 
             if (product === "premium") {
                 updateUser(
@@ -369,10 +371,9 @@ app.post(
             }
         }
 
-
-        /* =====================================================
-           ABONNEMENT PREMIUM MODIFIÉ
-        ===================================================== */
+        /* =================================================
+           PREMIUM MODIFIÉ
+        ================================================= */
 
         if (
             event.type ===
@@ -408,16 +409,19 @@ app.post(
                     );
 
                     console.log(
-                        `⭐ Premium ${active ? "actif" : "inactif"} pour ${userId}`
+                        `⭐ Premium ${
+                            active
+                                ? "actif"
+                                : "inactif"
+                        } pour ${userId}`
                     );
                 }
             }
         }
 
-
-        /* =====================================================
-           ABONNEMENT PREMIUM ANNULÉ
-        ===================================================== */
+        /* =================================================
+           PREMIUM SUPPRIMÉ
+        ================================================= */
 
         if (
             event.type ===
@@ -455,12 +459,11 @@ app.post(
             }
         }
 
-        res.json({
+        return res.json({
             received: true
         });
     }
 );
-
 
 /* =========================================================
    JSON
@@ -472,9 +475,8 @@ app.use(
     })
 );
 
-
 /* =========================================================
-   IDENTITÉ / CRÉDITS
+   COMPTE
 ========================================================= */
 
 app.get(
@@ -488,10 +490,15 @@ app.get(
 
         res.json({
             userId,
+
             credits:
-                Number(user.credits || 0),
+                Number(
+                    user.credits || 0
+                ),
+
             premium:
                 Boolean(user.premium),
+
             canSearch:
                 Boolean(user.premium) ||
                 Number(user.credits || 0) > 0 ||
@@ -502,9 +509,8 @@ app.get(
     }
 );
 
-
 /* =========================================================
-   RECHERCHE GRATUITE DU JOUR
+   RECHERCHE GRATUITE
 ========================================================= */
 
 function isFreeSearchUsedToday(user) {
@@ -530,18 +536,8 @@ function isFreeSearchUsedToday(user) {
     );
 }
 
-
 /* =========================================================
    CONSOMMER UNE RECHERCHE
-   ---------------------------------------------------------
-   Premium :
-      illimité
-
-   Pack :
-      utilise 1 crédit
-
-   Gratuit :
-      1 recherche par jour
 ========================================================= */
 
 app.post(
@@ -552,7 +548,6 @@ app.post(
 
         const user =
             getUser(userId);
-
 
         /* PREMIUM */
 
@@ -567,7 +562,6 @@ app.post(
                 userId
             });
         }
-
 
         /* CRÉDITS PAYANTS */
 
@@ -597,7 +591,6 @@ app.post(
             });
         }
 
-
         /* RECHERCHE GRATUITE */
 
         if (
@@ -621,7 +614,6 @@ app.post(
             });
         }
 
-
         /* PLUS DE RECHERCHE */
 
         return res.status(402).json({
@@ -635,9 +627,8 @@ app.post(
     }
 );
 
-
 /* =========================================================
-   CRÉATION CHECKOUT STRIPE
+   CHECKOUT STRIPE
 ========================================================= */
 
 app.post(
@@ -651,9 +642,8 @@ app.post(
                 });
             }
 
-            const {
-                product
-            } = req.body;
+            const product =
+                req.body?.product;
 
             const productConfig =
                 STRIPE_PRODUCTS[
@@ -664,6 +654,13 @@ app.post(
                 return res.status(400).json({
                     error:
                         "Produit Stripe invalide."
+                });
+            }
+
+            if (!productConfig.priceId) {
+                return res.status(500).json({
+                    error:
+                        "Le Price ID Stripe de ce produit est absent dans Render."
                 });
             }
 
@@ -687,7 +684,9 @@ app.post(
                 ],
 
                 success_url:
-                    `${PUBLIC_URL}/?payment=success&product=${encodeURIComponent(product)}`,
+                    `${PUBLIC_URL}/?payment=success&product=${encodeURIComponent(
+                        product
+                    )}`,
 
                 cancel_url:
                     `${PUBLIC_URL}/?payment=cancelled`,
@@ -695,13 +694,12 @@ app.post(
                 metadata: {
                     userId,
                     product
-                }
+                },
+
+                allow_promotion_codes: true
             };
 
-
-            /* =================================================
-               PREMIUM
-            ================================================= */
+            /* PREMIUM */
 
             if (
                 product === "premium"
@@ -721,7 +719,6 @@ app.post(
                 }
             }
 
-
             const session =
                 await stripe.checkout.sessions.create(
                     sessionConfig
@@ -731,18 +728,17 @@ app.post(
                 `💳 Checkout créé : ${product} pour ${userId}`
             );
 
-            res.json({
+            return res.json({
                 url:
                     session.url
             });
-
         } catch (error) {
             console.error(
                 "❌ ERREUR STRIPE :",
                 error
             );
 
-            res.status(500).json({
+            return res.status(500).json({
                 error:
                     error?.message ||
                     "Impossible de créer le paiement."
@@ -750,7 +746,6 @@ app.post(
         }
     }
 );
-
 
 /* =========================================================
    ANALYSE D'UNE RÉPONSE
@@ -808,7 +803,6 @@ IMPORTANT :
 - Tiens compte des goûts et préférences.
 - Évite de poser une question dont la réponse est déjà connue.
 - La prochaine question doit réellement aider à mieux choisir le cadeau.
-- Adapte la prochaine question au profil actuel.
 - Si suffisamment d'informations sont déjà disponibles, indique que le questionnaire peut être terminé.
 - Ne propose PAS encore de produits précis.
 - N'invente aucun produit, aucun prix et aucun lien.
@@ -941,7 +935,7 @@ Règles pour les questions :
                 });
             }
 
-            res.json(result);
+            return res.json(result);
 
         } catch (error) {
             console.error(
@@ -949,7 +943,7 @@ Règles pour les questions :
                 error
             );
 
-            res.status(500).json({
+            return res.status(500).json({
                 error:
                     error?.message ||
                     "Une erreur est survenue pendant l'analyse."
@@ -957,7 +951,6 @@ Règles pour les questions :
         }
     }
 );
-
 
 /* =========================================================
    RECOMMANDATIONS FINALES
@@ -1095,7 +1088,7 @@ Donne entre 10 et 20 idées variées.
                 `🎁 ${result.recommendations.length} recommandations générées`
             );
 
-            res.json(result);
+            return res.json(result);
 
         } catch (error) {
             console.error(
@@ -1103,7 +1096,7 @@ Donne entre 10 et 20 idées variées.
                 error
             );
 
-            res.status(500).json({
+            return res.status(500).json({
                 error:
                     error?.message ||
                     "Une erreur est survenue lors de la recherche."
@@ -1112,7 +1105,6 @@ Donne entre 10 et 20 idées variées.
     }
 );
 
-
 /* =========================================================
    FICHIERS DU SITE
 ========================================================= */
@@ -1120,7 +1112,6 @@ Donne entre 10 et 20 idées variées.
 app.use(
     express.static(__dirname)
 );
-
 
 /* =========================================================
    FALLBACK
@@ -1136,7 +1127,6 @@ app.use(
         );
     }
 );
-
 
 /* =========================================================
    DÉMARRAGE
@@ -1172,6 +1162,24 @@ app.listen(
         );
 
         console.log(
+            STRIPE_PRICE_PREMIUM
+                ? "⭐ Price Premium détecté"
+                : "❌ Price Premium absent"
+        );
+
+        console.log(
+            STRIPE_PRICE_PACK10
+                ? "🎟️ Price Pack 10 détecté"
+                : "❌ Price Pack 10 absent"
+        );
+
+        console.log(
+            STRIPE_PRICE_PACK30
+                ? "🎟️ Price Pack 30 détecté"
+                : "❌ Price Pack 30 absent"
+        );
+
+        console.log(
             "🧠 IA activée"
         );
 
@@ -1186,6 +1194,7 @@ app.listen(
         console.log(
             "================================="
         );
+
         console.log("");
     }
 );
