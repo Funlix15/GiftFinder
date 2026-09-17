@@ -671,8 +671,10 @@ app.post(
                 getUser(userId);
 
             const sessionConfig = {
-                mode:
-                    productConfig.mode,
+              mode: productConfig.mode,
+
+    payment_method_types: ["card"],
+
 
                 line_items: [
                     {
