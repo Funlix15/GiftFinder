@@ -7,7 +7,7 @@
     <title>GiftFinder — Trouve le cadeau parfait</title>
     <meta
         name="description"
-        content="GiftFinder utilise l'intelligence artificielle pour t'aider à trouver le cadeau idéal selon la personne, ton budget et l'occasion."
+        content="GiftFinder t'aide à trouver des idées de cadeaux personnalisées selon la personne, ton budget et ses goûts."
     >
 
     <link rel="stylesheet" href="style.css">
@@ -15,112 +15,153 @@
 
 <body>
 
-<!-- =========================================================
-HEADER
-========================================================= -->
+<!-- =====================================================
+     HEADER
+===================================================== -->
 
-<header class="header">
-    <div class="container header-content">
+<header class="site-header">
 
-        <a href="#" class="logo">
-            <span class="logo-icon">🎁</span>
-            <span>GiftFinder</span>
+    <div class="header-inner">
+
+        <a href="#accueil" class="logo">
+            🎁 GiftFinder
         </a>
 
-        <nav class="nav">
-            <a href="#categories">Catégories</a>
-            <a href="#how-it-works">Comment ça marche</a>
-            <a href="#faq">FAQ</a>
-            <a href="#premium" class="premium-link">Premium</a>
+        <nav class="main-nav">
+
+            <a href="#categories">
+                Catégories
+            </a>
+
+            <a href="#comment-ca-marche">
+                Comment ça marche
+            </a>
+
+            <a href="#boutique">
+                Boutique
+            </a>
+
+            <a href="#faq">
+                FAQ
+            </a>
+
         </nav>
 
-        <div class="header-actions">
+        <div class="header-right">
+
+            <div class="search-counter">
+                <span>Recherches restantes :</span>
+                <strong data-giftfinder-credits>1</strong>
+            </div>
+
+            <a href="#boutique" class="header-premium">
+                Premium
+            </a>
 
             <button
                 type="button"
-                class="favorite-button"
-                id="favoriteButton"
-                aria-label="Mes favoris"
-            >
-                ❤️
-                <span id="favoriteCount">0</span>
-            </button>
-
-            <button
-                type="button"
-                class="menu-button"
-                id="menuButton"
+                class="mobile-menu-button"
+                id="mobileMenuButton"
                 aria-label="Ouvrir le menu"
             >
                 ☰
             </button>
 
         </div>
+
     </div>
+
+    <div
+        class="mobile-menu"
+        id="mobileMenu"
+    >
+
+        <a href="#categories">
+            Catégories
+        </a>
+
+        <a href="#comment-ca-marche">
+            Comment ça marche
+        </a>
+
+        <a href="#boutique">
+            Boutique
+        </a>
+
+        <a href="#faq">
+            FAQ
+        </a>
+
+    </div>
+
 </header>
 
 
-<!-- =========================================================
-MOBILE MENU
-========================================================= -->
-
-<div class="mobile-menu" id="mobileMenu">
-    <a href="#categories">Catégories</a>
-    <a href="#how-it-works">Comment ça marche</a>
-    <a href="#faq">FAQ</a>
-    <a href="#premium">Premium</a>
-</div>
-
-
-<!-- =========================================================
-HERO
-========================================================= -->
+<!-- =====================================================
+     HERO
+===================================================== -->
 
 <main>
 
-<section class="hero">
-    <div class="container hero-grid">
+<section
+    id="accueil"
+    class="hero-section"
+>
 
-        <div>
+    <div class="hero-content">
 
-            <div class="hero-badge">
-                ✨ Trouve le cadeau idéal avec l'IA
-            </div>
+        <div class="hero-text">
+
+            <span class="hero-badge">
+                🎁 Trouve le cadeau idéal
+            </span>
 
             <h1>
-                Le cadeau parfait,
+                Le bon cadeau,
                 <span>sans prise de tête.</span>
             </h1>
 
             <p>
-                Réponds à quelques questions et GiftFinder analyse tes
-                réponses pour t'aider à trouver des idées de cadeaux
-                adaptées à la personne, à ton budget et à l'occasion.
+                Réponds à quelques questions et
+                GiftFinder recherche des idées adaptées
+                à la personne, au budget et à ses goûts.
             </p>
 
-            <button
-                type="button"
-                class="primary-button hero-button"
-                data-giftfinder-search
-            >
-                🎁 Trouver mon cadeau
-            </button>
+            <div class="hero-actions">
 
-            <div class="hero-info">
-                <div>
-                    <strong>IA</strong>
-                    <span>Recommandations personnalisées</span>
-                </div>
+                <button
+                    type="button"
+                    class="primary-button"
+                    data-giftfinder-search
+                >
+                    Trouver mon cadeau
+                </button>
 
-                <div>
-                    <strong>+100</strong>
-                    <span>Idées possibles</span>
-                </div>
+                <a
+                    href="#categories"
+                    class="secondary-button"
+                >
+                    Explorer les catégories
+                </a>
 
-                <div>
-                    <strong>1 min</strong>
-                    <span>Pour commencer</span>
-                </div>
+            </div>
+
+            <div class="hero-account">
+
+                <span>
+                    🔎 Recherches disponibles :
+                </span>
+
+                <strong data-giftfinder-credits>
+                    1
+                </strong>
+
+                <span
+                    data-giftfinder-premium
+                >
+                    Compte gratuit
+                </span>
+
             </div>
 
         </div>
@@ -128,246 +169,916 @@ HERO
 
         <div class="hero-card">
 
-            <div class="floating-card floating-top">
-                ✨ Personnalisé
+            <div class="hero-card-top">
+                <span>✨</span>
+                <span>GiftFinder</span>
             </div>
 
-            <div class="gift-box">
+            <div class="hero-card-question">
+
+                <small>
+                    Quel type de cadeau recherches-tu ?
+                </small>
+
+                <div class="hero-example">
+                    🎮 Gaming
+                </div>
+
+                <div class="hero-example">
+                    💻 Tech
+                </div>
+
+                <div class="hero-example">
+                    👟 Sneakers
+                </div>
+
+                <div class="hero-example">
+                    🎨 Créatif
+                </div>
+
+            </div>
+
+            <div class="hero-card-result">
+
+                <span>🎁</span>
+
+                <div>
+                    <strong>
+                        Cadeaux personnalisés
+                    </strong>
+
+                    <small>
+                        Selon tes réponses
+                    </small>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     CATEGORIES
+===================================================== -->
+
+<section
+    id="categories"
+    class="categories-section"
+>
+
+    <div class="section-heading">
+
+        <span class="section-label">
+            CATÉGORIES
+        </span>
+
+        <h2>
+            Cherche par catégorie
+        </h2>
+
+        <p>
+            Choisis une catégorie pour commencer
+            directement ta recherche.
+        </p>
+
+    </div>
+
+
+    <div class="categories-grid">
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="gaming"
+        >
+            <span>🎮</span>
+            <strong>Gaming / jeux vidéo</strong>
+            <small>Jeux et accessoires</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="stickers"
+        >
+            <span>🏷️</span>
+            <strong>Stickers</strong>
+            <small>Stickers et décoration</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="tech"
+        >
+            <span>💻</span>
+            <strong>Électronique / Tech</strong>
+            <small>High-tech et gadgets</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="fashion"
+        >
+            <span>👕</span>
+            <strong>Mode</strong>
+            <small>Vêtements et accessoires</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="sneakers"
+        >
+            <span>👟</span>
+            <strong>Sneakers</strong>
+            <small>Baskets et chaussures</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="streetwear"
+        >
+            <span>🧢</span>
+            <strong>Streetwear</strong>
+            <small>Style urbain</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="jewelry"
+        >
+            <span>💎</span>
+            <strong>Bijoux</strong>
+            <small>Bijoux et accessoires</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="sport"
+        >
+            <span>⚽</span>
+            <strong>Sport</strong>
+            <small>Équipement et passion</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="food"
+        >
+            <span>🍫</span>
+            <strong>Nourriture</strong>
+            <small>Gourmandises et coffrets</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="drinks"
+        >
+            <span>🥤</span>
+            <strong>Boissons</strong>
+            <small>Coffrets et découvertes</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="creative"
+        >
+            <span>🎨</span>
+            <strong>Créatif</strong>
+            <small>Loisirs créatifs</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="books"
+        >
+            <span>📚</span>
+            <strong>Livres</strong>
+            <small>Pour tous les lecteurs</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="home"
+        >
+            <span>🏠</span>
+            <strong>Maison</strong>
+            <small>Déco et objets utiles</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="beauty"
+        >
+            <span>✨</span>
+            <strong>Beauté</strong>
+            <small>Soins et accessoires</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="music"
+        >
+            <span>🎵</span>
+            <strong>Musique</strong>
+            <small>Pour les passionnés</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="personalized"
+        >
+            <span>🎁</span>
+            <strong>Personnalisé</strong>
+            <small>Cadeaux uniques</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="travel"
+        >
+            <span>✈️</span>
+            <strong>Voyage</strong>
+            <small>Pour les voyageurs</small>
+        </button>
+
+
+        <button
+            type="button"
+            class="category-card"
+            data-giftfinder-search
+            data-giftfinder-category="experience"
+        >
+            <span>🎟️</span>
+            <strong>Expérience / activité</strong>
+            <small>Des souvenirs à vivre</small>
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     COMMENT ÇA MARCHE
+===================================================== -->
+
+<section
+    id="comment-ca-marche"
+    class="how-section"
+>
+
+    <div class="section-heading">
+
+        <span class="section-label">
+            COMMENT ÇA MARCHE ?
+        </span>
+
+        <h2>
+            Trouve ton cadeau en quelques étapes
+        </h2>
+
+    </div>
+
+
+    <div class="steps-grid">
+
+        <div class="step">
+
+            <div class="step-number">
+                01
+            </div>
+
+            <div class="step-icon">
+                📝
+            </div>
+
+            <h3>
+                Réponds aux questions
+            </h3>
+
+            <p>
+                Indique pour qui est le cadeau,
+                ton budget et ses goûts.
+            </p>
+
+        </div>
+
+
+        <div class="step">
+
+            <div class="step-number">
+                02
+            </div>
+
+            <div class="step-icon">
+                🧠
+            </div>
+
+            <h3>
+                GiftFinder analyse
+            </h3>
+
+            <p>
+                Notre système utilise tes réponses
+                pour rechercher des idées adaptées.
+            </p>
+
+        </div>
+
+
+        <div class="step">
+
+            <div class="step-number">
+                03
+            </div>
+
+            <div class="step-icon">
                 🎁
             </div>
 
-            <div class="floating-card floating-bottom">
-                💜 Cadeau trouvé
-            </div>
+            <h3>
+                Découvre les cadeaux
+            </h3>
+
+            <p>
+                Consulte les recommandations et
+                choisis celle qui te plaît.
+            </p>
 
         </div>
 
     </div>
+
+
+    <div class="how-cta">
+
+        <button
+            type="button"
+            class="primary-button"
+            data-giftfinder-search
+        >
+            Commencer une recherche
+        </button>
+
+    </div>
+
 </section>
 
 
-<!-- =========================================================
-CATEGORIES
-========================================================= -->
+<!-- =====================================================
+     BOUTIQUE
+===================================================== -->
 
-<section class="categories-section" id="categories">
+<section
+    id="boutique"
+    class="premium-section"
+>
 
-    <div class="container">
+    <div class="section-heading">
 
-        <div class="section-heading center">
+        <span class="section-label">
+            BOUTIQUE
+        </span>
 
-            <span class="section-label">
-                CATÉGORIES
+        <h2>
+            Plus de recherches, plus de cadeaux
+        </h2>
+
+        <p>
+            Utilise tes recherches gratuites ou
+            choisis une formule adaptée à tes besoins.
+        </p>
+
+    </div>
+
+
+    <div class="shop-account">
+
+        <div>
+            <span>
+                Ton compte
             </span>
 
-            <h2>
-                Un cadeau pour chaque personne
-            </h2>
+            <strong
+                data-giftfinder-premium
+            >
+                Compte gratuit
+            </strong>
+        </div>
+
+
+        <div>
+            <span>
+                Recherches restantes
+            </span>
+
+            <strong
+                data-giftfinder-credits
+            >
+                1
+            </strong>
+        </div>
+
+    </div>
+
+
+    <div class="pricing-grid">
+
+        <!-- PREMIUM -->
+
+        <div class="pricing-card featured">
+
+            <div class="pricing-badge">
+                ⭐ PREMIUM
+            </div>
+
+            <h3>
+                Premium
+            </h3>
+
+            <div class="price">
+                3,99 €
+                <span>/ mois</span>
+            </div>
 
             <p>
-                Choisis une catégorie ou laisse GiftFinder faire le travail.
+                Pour utiliser GiftFinder sans
+                limite de recherches.
+            </p>
+
+            <ul>
+
+                <li>
+                    ✓ Recherches illimitées
+                </li>
+
+                <li>
+                    ✓ Toutes les catégories
+                </li>
+
+                <li>
+                    ✓ Questionnaire personnalisé
+                </li>
+
+                <li>
+                    ✓ Recommandations IA
+                </li>
+
+            </ul>
+
+            <button
+                type="button"
+                class="primary-button full-width"
+                data-payment-product="premium"
+            >
+                Passer à Premium
+            </button>
+
+        </div>
+
+
+        <!-- PACK 10 -->
+
+        <div class="pricing-card">
+
+            <h3>
+                Pack 10
+            </h3>
+
+            <div class="price">
+                4,99 €
+            </div>
+
+            <p>
+                10 recherches supplémentaires.
+            </p>
+
+            <ul>
+
+                <li>
+                    ✓ 10 recherches
+                </li>
+
+                <li>
+                    ✓ Toutes les catégories
+                </li>
+
+                <li>
+                    ✓ Sans abonnement
+                </li>
+
+            </ul>
+
+            <button
+                type="button"
+                class="secondary-button full-width"
+                data-payment-product="pack10"
+            >
+                Acheter 10 recherches
+            </button>
+
+        </div>
+
+
+        <!-- PACK 30 -->
+
+        <div class="pricing-card">
+
+            <h3>
+                Pack 30
+            </h3>
+
+            <div class="price">
+                9,99 €
+            </div>
+
+            <p>
+                30 recherches supplémentaires.
+            </p>
+
+            <ul>
+
+                <li>
+                    ✓ 30 recherches
+                </li>
+
+                <li>
+                    ✓ Toutes les catégories
+                </li>
+
+                <li>
+                    ✓ Sans abonnement
+                </li>
+
+            </ul>
+
+            <button
+                type="button"
+                class="secondary-button full-width"
+                data-payment-product="pack30"
+            >
+                Acheter 30 recherches
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     RÉSULTATS
+===================================================== -->
+
+<section
+    id="results-section"
+    class="results-section"
+>
+
+    <div
+        id="recommendations"
+    ></div>
+
+</section>
+
+
+<!-- =====================================================
+     FAQ
+===================================================== -->
+
+<section
+    id="faq"
+    class="faq-section"
+>
+
+    <div class="section-heading">
+
+        <span class="section-label">
+            FAQ
+        </span>
+
+        <h2>
+            Questions fréquentes
+        </h2>
+
+    </div>
+
+
+    <div class="faq-list">
+
+        <details>
+
+            <summary>
+                Comment fonctionne GiftFinder ?
+            </summary>
+
+            <p>
+                Tu réponds à quelques questions sur
+                la personne à qui tu veux offrir un
+                cadeau. GiftFinder utilise ensuite
+                ces informations pour rechercher des
+                idées adaptées.
+            </p>
+
+        </details>
+
+
+        <details>
+
+            <summary>
+                Combien de recherches puis-je faire ?
+            </summary>
+
+            <p>
+                Le compte gratuit permet d'effectuer
+                une recherche gratuite par jour.
+                Les formules payantes permettent
+                d'obtenir davantage de recherches
+                ou des recherches illimitées avec Premium.
+            </p>
+
+        </details>
+
+
+        <details>
+
+            <summary>
+                Puis-je choisir une catégorie ?
+            </summary>
+
+            <p>
+                Oui. Tu peux commencer directement
+                depuis la section Catégories et
+                sélectionner le type de cadeau recherché.
+            </p>
+
+        </details>
+
+
+        <details>
+
+            <summary>
+                Les cadeaux sont-ils réellement disponibles ?
+            </summary>
+
+            <p>
+                Les recommandations sont destinées
+                à orienter ta recherche vers des
+                produits correspondant à tes critères.
+                Le prix et la disponibilité peuvent
+                changer sur le site du vendeur.
+            </p>
+
+        </details>
+
+
+        <details>
+
+            <summary>
+                Comment fonctionne Premium ?
+            </summary>
+
+            <p>
+                Premium est une formule mensuelle
+                donnant accès à des recherches
+                illimitées.
+            </p>
+
+        </details>
+
+    </div>
+
+</section>
+
+</main>
+
+
+<!-- =====================================================
+     FOOTER
+===================================================== -->
+
+<footer class="site-footer">
+
+    <div class="footer-inner">
+
+        <div class="footer-brand">
+
+            <div class="logo">
+                🎁 GiftFinder
+            </div>
+
+            <p>
+                Trouve le cadeau parfait,
+                simplement.
             </p>
 
         </div>
 
 
-        <div class="categories-grid">
+        <div class="footer-column">
 
-            <button
-                type="button"
-                class="category-card"
-                data-giftfinder-search
-                data-giftfinder-category="gaming"
-            >
-                <span>🎮</span>
-                <strong>Gaming</strong>
-                <small>Jeux vidéo et accessoires</small>
-            </button>
+            <h4>
+                Navigation
+            </h4>
 
-            <button
-                type="button"
-                class="category-card"
-                data-giftfinder-search
-                data-giftfinder-category="tech"
-            >
-                <span>💻</span>
-                <strong>Tech</strong>
-                <small>Électronique et gadgets</small>
-            </button>
+            <a href="#accueil">
+                Accueil
+            </a>
 
-            <button
-                type="button"
-                class="category-card"
-                data-giftfinder-search
-                data-giftfinder-category="fashion"
-            >
-                <span>👕</span>
-                <strong>Mode</strong>
-                <small>Vêtements et accessoires</small>
-            </button>
+            <a href="#categories">
+                Catégories
+            </a>
 
-            <button
-                type="button"
-                class="category-card"
-                data-giftfinder-search
-                data-giftfinder-category="sneakers"
-            >
-                <span>👟</span>
-                <strong>Sneakers</strong>
-                <small>Chaussures et streetwear</small>
-            </button>
+            <a href="#boutique">
+                Boutique
+            </a>
 
-            <button
-                type="button"
-                class="category-card"
-                data-giftfinder-search
-                data-giftfinder-category="jewelry"
-            >
-                <span>💎</span>
-                <strong>Bijoux</strong>
-                <small>Bijoux et accessoires</small>
-            </button>
+            <a href="#faq">
+                FAQ
+            </a>
 
-            <button
-                type="button"
-                class="category-card"
-                data-giftfinder-search
-                data-giftfinder-category="sport"
-            >
-                <span>⚽</span>
-                <strong>Sport</strong>
-                <small>Pour les passionnés</small>
-            </button>
+        </div>
 
-            <button
-                type="button"
-                class="category-card"
-                data-giftfinder-search
-                data-giftfinder-category="books"
-            >
-                <span>📚</span>
-                <strong>Livres</strong>
-                <small>Lecture et culture</small>
-            </button>
 
-            <button
-                type="button"
-                class="category-card"
-                data-giftfinder-search
-                data-giftfinder-category="experience"
-            >
-                <span>🎟️</span>
-                <strong>Expériences</strong>
-                <small>Activités et sorties</small>
-            </button>
+        <div class="footer-column">
 
-            <button
-                type="button"
-                class="category-card"
-                data-giftfinder-search
-                data-giftfinder-category="creative"
-            >
-                <span>🎨</span>
-                <strong>Créatif</strong>
-                <small>DIY et création</small>
-            </button>
+            <h4>
+                Informations
+            </h4>
 
-            <button
-                type="button"
-                class="category-card"
-                data-giftfinder-search
-                data-giftfinder-category="food"
-            >
-                <span>🍫</span>
-                <strong>Food</strong>
-                <small>Gourmandises et plaisirs</small>
-            </button>
+            <a href="#">
+                Mentions légales
+            </a>
 
-            <button
-                type="button"
-                class="category-card"
-                data-giftfinder-search
-                data-giftfinder-category="music"
-            >
-                <span>🎵</span>
-                <strong>Musique</strong>
-                <small>Pour les mélomanes</small>
-            </button>
+            <a href="#">
+                Politique de confidentialité
+            </a>
 
-            <button
-                type="button"
-                class="category-card"
-                data-giftfinder-search
-                data-giftfinder-category="personalized"
-            >
-                <span>💝</span>
-                <strong>Personnalisé</strong>
-                <small>Un cadeau unique</small>
-            </button>
+            <a href="#">
+                CGU
+            </a>
 
         </div>
 
     </div>
-</section>
 
 
-<!-- =========================================================
-HOW IT WORKS
-========================================================= -->
+    <div class="footer-bottom">
 
-<section class="how-section" id="how-it-works">
+        <span>
+            © 2026 GiftFinder
+        </span>
 
-    <div class="container">
+        <span>
+            Tous droits réservés.
+        </span>
 
-        <div class="section-heading center">
+    </div>
+
+</footer>
+
+
+<!-- =====================================================
+     MODAL QUESTIONNAIRE
+===================================================== -->
+
+<div
+    id="giftFinderModal"
+    class="questionnaire-modal"
+    style="display:none;"
+>
+
+    <div class="questionnaire-box">
+
+        <button
+            type="button"
+            class="questionnaire-close"
+            onclick="closeQuestionnaire()"
+            aria-label="Fermer"
+        >
+            ×
+        </button>
+
+
+        <div class="questionnaire-header">
 
             <span class="section-label">
-                COMMENT ÇA MARCHE
+                GIFT FINDER
             </span>
 
             <h2>
-                Trouve ton cadeau en quelques étapes
+                Trouvons ton cadeau
             </h2>
 
             <p>
-                Pas besoin de chercher pendant des heures.
+                Quelques questions suffisent.
             </p>
 
         </div>
 
 
-        <div class="steps-grid">
+        <div
+            id="questionContainer"
+            class="questionnaire-content"
+        ></div>
 
-            <div class="step">
+    </div>
 
-                <span class="step-number">01</span>
-
-                <div class="step-icon">
-                    📝
-                </div>
-
-                <h3>
-                    Réponds aux questions
-                </h3>
-
-                <p>
-                    Indique pour qui est le cadeau, ton budget,
-                    l'occasion et ses centres d'intérêt.
-                </p>
-
-            </div>
+</div>
 
 
-            <div class="step">
+<!-- =====================================================
+     SCRIPTS
+===================================================== -->
 
-                <span class="step-number">02</span>
+<script src="data.js"></script>
+<script src="app.js"></script>
 
-                <div class="step-icon">
-                    🤖
-                </div>
 
-                <h3>
-                    L'IA analyse tes réponses
-                </h3>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
 
-                <p
+    const menuButton =
+        document.getElementById("mobileMenuButton");
+
+    const mobileMenu =
+        document.getElementById("mobileMenu");
+
+    if (menuButton && mobileMenu) {
+
+        menuButton.addEventListener("click", () => {
+
+            mobileMenu.classList.toggle("active");
+
+        });
+
+        mobileMenu
+            .querySelectorAll("a")
+            .forEach(link => {
+
+                link.addEventListener("click", () => {
+                    mobileMenu.classList.remove("active");
+                });
+
+            });
+
+    }
+
+});
+</script>
+
+</body>
+</html>
